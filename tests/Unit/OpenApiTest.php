@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Tag;
+use Cortex\OpenApi\Objects\Info;
+use Cortex\OpenApi\Objects\Server;
+use Cortex\OpenApi\Enums\OpenApiVersion;
+use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\Objects\ExternalDocs;
+use Cortex\OpenApi\Objects\SecurityRequirement;
+
+it('defaults to OpenAPI 3.1.0', function (): void {
+    $doc = OpenApi::create()->info(Info::create()->title('x')->version('1'));
+
+    expect($doc->toArray())->toBe([
+        'openapi' => '3.1.0',
+        'info' => ['title' => 'x', 'version' => '1'],
+    ]);
+
+    $doc = OpenApi::create(OpenApiVersion::V3_1_1)->info(Info::create()->title('x')->version('1'));
+
+    expect($doc->toArray())->toBe([
+        'openapi' => '3.1.1',
+        'info' => ['title' => 'x', 'version' => '1'],
+    ]);
+});
+
+it('composes the whole document', function (): void {
+    $doc = OpenApi::create()
+        ->info(Info::create()->title('Example API')->version('1.0.0'))
+        ->servers(Server::create('https://api.example.com'))
+        ->tags(Tag::create('Users'))
+        ->externalDocs(ExternalDocs::create('https://example.com/docs'))
+        ->security(SecurityRequirement::create('apiKey'))
+        ->paths(
+            PathItem::create('/users')->operations(
+                Operation::get()->operationId('users.index')->responses(Response::ok()),
+            ),
+        )
+        ->webhooks([
+            'user.created' => PathItem::create('/user.created')->operations(
+                Operation::post()->operationId('user.created'),
+            ),
+        ])
+        ->components(Components::create()->schema('User', Schema::object()));
+
+    expect($doc->toArray())->toBe([
+        'openapi' => '3.1.0',
+        'info' => ['title' => 'Example API', 'version' => '1.0.0'],
+        'servers' => [['url' => 'https://api.example.com']],
+        'paths' => [
+            '/users' => [
+                'get' => [
+                    'operationId' => 'users.index',
+                    'responses' => ['200' => ['description' => 'OK']],
+                ],
+            ],
+        ],
+        'webhooks' => [
+            'user.created' => [
+                'post' => ['operationId' => 'user.created'],
+            ],
+        ],
+        'components' => [
+            'schemas' => ['User' => ['type' => 'object']],
+        ],
+        'security' => [['apiKey' => []]],
+        'tags' => [['name' => 'Users']],
+        'externalDocs' => ['url' => 'https://example.com/docs'],
+    ]);
+});
+
+it('toJson produces valid JSON', function (): void {
+    $doc = OpenApi::create()->info(Info::create()->title('x')->version('1'));
+    $json = $doc->toJson();
+
+    expect(json_decode($json, true))->toBe($doc->toArray());
+});
+
+it('toJson supports pretty printing', function (): void {
+    $doc = OpenApi::create()->info(Info::create()->title('x')->version('1'));
+
+    expect($doc->toJson(JSON_PRETTY_PRINT))->toContain("\n");
+});
+
+it('knows its OpenAPI version enum', function (): void {
+    expect(OpenApi::create(OpenApiVersion::V3_1_0)->getVersion())->toBe(OpenApiVersion::V3_1_0);
+    expect(OpenApi::create(OpenApiVersion::V3_1_1)->getVersion())->toBe(OpenApiVersion::V3_1_1);
+});
+
+it('supports vendor extensions at the root', function (): void {
+    $doc = OpenApi::create()
+        ->info(Info::create()->title('x')->version('1'))
+        ->x('x-internal', true);
+
+    expect($doc->toArray()['x-internal'])->toBe(true);
+});

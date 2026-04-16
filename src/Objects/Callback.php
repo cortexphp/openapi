@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Cortex\OpenApi\Objects;
+
+use Cortex\OpenApi\Concerns\HasExtensions;
+use Cortex\OpenApi\Contracts\Serializable;
+
+final class Callback implements Serializable
+{
+    use HasExtensions;
+
+    /**
+     * @var array<string, PathItem>
+     */
+    private array $expressions = [];
+
+    public static function create(): self
+    {
+        return new self();
+    }
+
+    public static function ref(string $pointer): Reference
+    {
+        return Reference::to($pointer);
+    }
+
+    public function expression(string $runtimeExpression, PathItem $pathItem): self
+    {
+        $this->expressions[$runtimeExpression] = $pathItem;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $output = [];
+
+        foreach ($this->expressions as $expression => $pathItem) {
+            $output[$expression] = $pathItem->toArray();
+        }
+
+        foreach ($this->getExtensions() as $key => $value) {
+            $output[$key] = $value;
+        }
+
+        return $output;
+    }
+}

@@ -1,0 +1,81 @@
+{
+    "name": "cortexphp/openapi",
+    "description": "A fluent OpenAPI 3.1 builder for PHP, built on top of cortexphp/json-schema",
+    "keywords": [
+        "openapi",
+        "oas",
+        "swagger",
+        "openapi-3.1",
+        "json-schema",
+        "cortex"
+    ],
+    "homepage": "https://github.com/cortexphp/openapi",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sean Tymon",
+            "email": "tymon148@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "ext-json": "*",
+        "cortexphp/json-schema": "^1.1",
+        "opis/json-schema": "^2.4"
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.1.4",
+        "pestphp/pest-plugin-type-coverage": "^4.0.3",
+        "phpstan/phpstan": "^2.1.32",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "rector/rector": "^2.2",
+        "symfony/yaml": "^6.0 || ^7.0",
+        "symplify/easy-coding-standard": "^13.0"
+    },
+    "suggest": {
+        "symfony/yaml": "Required for OpenApi::toYaml() output (^6.0 || ^7.0)."
+    },
+    "autoload": {
+        "psr-4": {
+            "Cortex\\OpenApi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cortex\\OpenApi\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "ecs": "ecs check --fix",
+        "ecs:check": "ecs check",
+        "rector": "rector process",
+        "rector:check": "rector process --dry-run",
+        "stan": "phpstan analyse",
+        "type-coverage": "pest --type-coverage --min=100",
+        "format": [
+            "@rector",
+            "@ecs"
+        ],
+        "format:check": [
+            "@rector:check",
+            "@ecs:check"
+        ],
+        "check": [
+            "@format",
+            "@test",
+            "@stan",
+            "@type-coverage"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
