@@ -8,6 +8,7 @@ use Cortex\OpenApi\Objects\Tag;
 use Cortex\OpenApi\Objects\Info;
 use Cortex\OpenApi\Objects\Server;
 use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\Response;
 use Cortex\OpenApi\Objects\Operation;
 use Cortex\OpenApi\Objects\Components;
@@ -129,6 +130,20 @@ it('supports vendor extensions at the root', function (): void {
         ->x('x-internal', true);
 
     expect($openApi->toArray()['x-internal'])->toBe(true);
+});
+
+it('path() adds a PathItem or Reference by explicit pattern', function (): void {
+    $openApi = OpenApi::create()
+        ->info(Info::create()->title('Test')->version('1.0'))
+        ->path('/users', PathItem::create('/users')->operations(
+            Operation::get()->operationId('users.index'),
+        ))
+        ->path('/legacy', Reference::pathItem('LegacyUsers'));
+
+    $arr = $openApi->toArray();
+    expect($arr['paths'])->toHaveKey('/users');
+    expect($arr['paths'])->toHaveKey('/legacy');
+    expect($arr['paths']['/legacy'])->toBe(['$ref' => '#/components/pathItems/LegacyUsers']);
 });
 
 it('adds webhooks one at a time with webhook()', function (): void {

@@ -42,7 +42,7 @@ final class OpenApi implements Serializable, HasExtensionsInterface
     private array $servers = [];
 
     /**
-     * @var array<string, PathItem>
+     * @var array<string, PathItem|Reference>
      */
     private array $paths = [];
 
@@ -117,6 +117,13 @@ final class OpenApi implements Serializable, HasExtensionsInterface
     public function webhooks(array $webhooks): self
     {
         $this->webhooks = $webhooks;
+
+        return $this;
+    }
+
+    public function path(string $pattern, PathItem|Reference $pathItem): self
+    {
+        $this->paths[$pattern] = $pathItem;
 
         return $this;
     }
