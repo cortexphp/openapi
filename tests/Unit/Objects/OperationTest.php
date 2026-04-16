@@ -142,8 +142,12 @@ it('adds a response by explicit status key, accepting Response or Reference', fu
         ->response('404', Reference::response('NotFound'));
 
     expect($operation->toArray()['responses'])->toBe([
-        '200' => ['description' => 'OK'],
-        '404' => ['$ref' => '#/components/responses/NotFound'],
+        '200' => [
+            'description' => 'OK',
+        ],
+        '404' => [
+            '$ref' => '#/components/responses/NotFound',
+        ],
     ]);
 });
 

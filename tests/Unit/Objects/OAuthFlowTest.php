@@ -7,13 +7,13 @@ use Cortex\OpenApi\Objects\OAuthFlow;
 covers(OAuthFlow::class);
 
 it('adds scopes one at a time with scope()', function (): void {
-    $flow = OAuthFlow::create()
+    $oAuthFlow = OAuthFlow::create()
         ->authorizationUrl('https://example.com/authorize')
         ->tokenUrl('https://example.com/token')
         ->scope('read:users', 'Read users')
         ->scope('write:users', 'Write users');
 
-    expect($flow->toArray())->toBe([
+    expect($oAuthFlow->toArray())->toBe([
         'authorizationUrl' => 'https://example.com/authorize',
         'tokenUrl' => 'https://example.com/token',
         'scopes' => [

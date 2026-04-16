@@ -143,10 +143,14 @@ it('adds webhooks one at a time with webhook()', function (): void {
 
     expect($openApi->toArray()['webhooks'])->toBe([
         'user.created' => [
-            'post' => ['operationId' => 'user.created'],
+            'post' => [
+                'operationId' => 'user.created',
+            ],
         ],
         'user.deleted' => [
-            'post' => ['operationId' => 'user.deleted'],
+            'post' => [
+                'operationId' => 'user.deleted',
+            ],
         ],
     ]);
 });
