@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Server;
 use Cortex\OpenApi\Enums\HttpMethod;
 use Cortex\OpenApi\Objects\Callback;
 use Cortex\OpenApi\Objects\PathItem;
-use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\Response;
 use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\Operation;
 use Cortex\OpenApi\Objects\Parameter;
+use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\RequestBody;
 use Cortex\OpenApi\Objects\ExternalDocs;
 use Cortex\OpenApi\Objects\SecurityRequirement;
-use Cortex\OpenApi\Objects\Server;
 
 covers(Operation::class);
 
@@ -112,14 +112,18 @@ it('emits externalDocs, servers, and security', function (): void {
 });
 
 it('deprecated() defaults to true', function (): void {
-    expect(Operation::get()->deprecated()->toArray())->toMatchArray(['deprecated' => true]);
+    expect(Operation::get()->deprecated()->toArray())->toMatchArray([
+        'deprecated' => true,
+    ]);
 });
 
 it('emits servers when set', function (): void {
     $operation = Operation::get()->servers(Server::create('https://api.example.com'));
 
     expect($operation->toArray())->toBe([
-        'servers' => [['url' => 'https://api.example.com']],
+        'servers' => [[
+            'url' => 'https://api.example.com',
+        ]],
     ]);
 });
 
@@ -131,7 +135,9 @@ it('skips Reference objects in responses()', function (): void {
 
     expect($operation->toArray())->toBe([
         'responses' => [
-            '200' => ['description' => 'OK'],
+            '200' => [
+                'description' => 'OK',
+            ],
         ],
     ]);
 });

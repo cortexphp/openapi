@@ -56,15 +56,22 @@ it('supports ref() shortcut', function (): void {
 it('inserts requestBody after parameters when parameters are present', function (): void {
     $link = Link::create()
         ->operationId('users.create')
-        ->parameters(['id' => '$response.body#/id'])
-        ->requestBody(['key' => 'value']);
+        ->parameters([
+            'id' => '$response.body#/id',
+        ])
+        ->requestBody([
+            'key' => 'value',
+        ]);
 
     $array = $link->toArray();
 
     expect($array)->toHaveKey('requestBody');
-    expect($array['requestBody'])->toBe(['key' => 'value']);
+    expect($array['requestBody'])->toBe([
+        'key' => 'value',
+    ]);
+
     $keys = array_keys($array);
-    expect(array_search('requestBody', $keys))->toBeGreaterThan(array_search('parameters', $keys));
+    expect(array_search('requestBody', $keys, true))->toBeGreaterThan(array_search('parameters', $keys, true));
 });
 
 it('inserts requestBody before description when no parameters present', function (): void {
@@ -77,26 +84,30 @@ it('inserts requestBody before description when no parameters present', function
 
     expect($array)->toHaveKey('requestBody');
     $keys = array_keys($array);
-    expect(array_search('requestBody', $keys))->toBeLessThan(array_search('description', $keys));
+    expect(array_search('requestBody', $keys, true))->toBeLessThan(array_search('description', $keys, true));
 });
 
 it('inserts requestBody before server when no parameters or description', function (): void {
     $link = Link::create()
         ->operationId('users.show')
-        ->requestBody(['body' => 'data'])
+        ->requestBody([
+            'body' => 'data',
+        ])
         ->server(Server::create('https://api.example.com'));
 
     $array = $link->toArray();
 
     expect($array)->toHaveKey('requestBody');
     $keys = array_keys($array);
-    expect(array_search('requestBody', $keys))->toBeLessThan(array_search('server', $keys));
+    expect(array_search('requestBody', $keys, true))->toBeLessThan(array_search('server', $keys, true));
 });
 
 it('appends requestBody at end when no parameters, description, or server', function (): void {
     $link = Link::create()
         ->operationId('users.show')
-        ->requestBody(['body' => 'data']);
+        ->requestBody([
+            'body' => 'data',
+        ]);
 
     $array = $link->toArray();
 

@@ -66,5 +66,7 @@ it('required() defaults to true', function (): void {
         ->required()
         ->content(MediaType::json(Schema::string()));
 
-    expect($requestBody->toArray())->toMatchArray(['required' => true]);
+    expect($requestBody->toArray())->toMatchArray([
+        'required' => true,
+    ]);
 });

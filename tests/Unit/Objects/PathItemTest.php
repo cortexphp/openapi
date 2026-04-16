@@ -90,8 +90,12 @@ it('servers() preserves values as a list', function (): void {
 
     $result = $pathItem->toArray();
     expect($result['servers'])->toBe([
-        ['url' => 'https://api.example.com'],
-        ['url' => 'https://staging.example.com'],
+        [
+            'url' => 'https://api.example.com',
+        ],
+        [
+            'url' => 'https://staging.example.com',
+        ],
     ]);
     expect(array_is_list($result['servers']))->toBeTrue();
 });

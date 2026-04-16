@@ -81,8 +81,8 @@ it('validation exception message contains schema validation prefix', function ()
     try {
         $openApi->validate();
         $this->fail('Expected ValidationException');
-    } catch (ValidationException $e) {
-        expect($e->getMessage())->toContain('OpenAPI document failed meta-schema validation:');
+    } catch (ValidationException $validationException) {
+        expect($validationException->getMessage())->toContain('OpenAPI document failed meta-schema validation:');
     }
 });
 
@@ -91,10 +91,13 @@ it('validation exception message contains json-encoded errors', function (): voi
 
     try {
         $openApi->validate();
-    } catch (ValidationException $e) {
+    } catch (ValidationException $validationException) {
         // The message should contain both the prefix and JSON-encoded error details
-        expect($e->getMessage())->toStartWith('OpenAPI document failed meta-schema validation: ');
-        $jsonPart = substr($e->getMessage(), strlen('OpenAPI document failed meta-schema validation: '));
+        expect($validationException->getMessage())->toStartWith('OpenAPI document failed meta-schema validation: ');
+        $jsonPart = substr(
+            $validationException->getMessage(),
+            strlen('OpenAPI document failed meta-schema validation: '),
+        );
         expect(json_decode($jsonPart, true))->not->toBeNull();
     }
 });

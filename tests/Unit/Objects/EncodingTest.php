@@ -40,9 +40,13 @@ it('emits headers and style flags', function (): void {
 });
 
 it('explode() defaults to true', function (): void {
-    expect(Encoding::create()->explode()->toArray())->toBe(['explode' => true]);
+    expect(Encoding::create()->explode()->toArray())->toBe([
+        'explode' => true,
+    ]);
 });
 
 it('allowReserved() defaults to true', function (): void {
-    expect(Encoding::create()->allowReserved()->toArray())->toBe(['allowReserved' => true]);
+    expect(Encoding::create()->allowReserved()->toArray())->toBe([
+        'allowReserved' => true,
+    ]);
 });

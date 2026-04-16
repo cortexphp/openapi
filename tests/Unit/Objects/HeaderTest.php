@@ -39,11 +39,15 @@ it('supports deprecated and example', function (): void {
 });
 
 it('required() defaults to true', function (): void {
-    expect(Header::create()->required()->toArray())->toBe(['required' => true]);
+    expect(Header::create()->required()->toArray())->toBe([
+        'required' => true,
+    ]);
 });
 
 it('deprecated() defaults to true', function (): void {
-    expect(Header::create()->deprecated()->toArray())->toBe(['deprecated' => true]);
+    expect(Header::create()->deprecated()->toArray())->toBe([
+        'deprecated' => true,
+    ]);
 });
 
 it('emits all optional fields when set', function (): void {
@@ -59,14 +63,20 @@ it('emits all optional fields when set', function (): void {
         'style' => 'simple',
         'explode' => true,
         'allowReserved' => true,
-        'schema' => ['type' => 'string'],
+        'schema' => [
+            'type' => 'string',
+        ],
     ]);
 });
 
 it('explode() defaults to true', function (): void {
-    expect(Header::create()->explode()->toArray())->toBe(['explode' => true]);
+    expect(Header::create()->explode()->toArray())->toBe([
+        'explode' => true,
+    ]);
 });
 
 it('allowReserved() defaults to true', function (): void {
-    expect(Header::create()->allowReserved()->toArray())->toBe(['allowReserved' => true]);
+    expect(Header::create()->allowReserved()->toArray())->toBe([
+        'allowReserved' => true,
+    ]);
 });

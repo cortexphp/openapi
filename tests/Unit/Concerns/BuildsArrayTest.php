@@ -167,9 +167,13 @@ it('does not call getExtensions() on classes without HasExtensionsInterface', fu
 
     // If the instanceof check were mutated to true, this would fatal-error
     // because BuildsArrayNoExtensionsFixture has no getExtensions() method.
-    $out = $fixture->assemble(['title' => 'Test']);
+    $out = $fixture->assemble([
+        'title' => 'Test',
+    ]);
 
-    expect($out)->toBe(['title' => 'Test']);
+    expect($out)->toBe([
+        'title' => 'Test',
+    ]);
 });
 
 it('unwraps a Cortex JsonSchema stripping $schema and title', function (): void {
