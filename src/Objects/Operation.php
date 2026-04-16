@@ -174,16 +174,6 @@ final class Operation implements Serializable, HasExtensionsInterface
     }
 
     /**
-     * @param array<string, Response|Reference> $responses
-     */
-    public function responseMap(array $responses): self
-    {
-        $this->responses = $responses;
-
-        return $this;
-    }
-
-    /**
      * @param array<string, Callback|Reference> $callbacks
      */
     public function callbacks(array $callbacks): self
