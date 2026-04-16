@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\RequestBody;
 
 covers(RequestBody::class);
@@ -68,5 +69,30 @@ it('required() defaults to true', function (): void {
 
     expect($requestBody->toArray())->toMatchArray([
         'required' => true,
+    ]);
+});
+
+it('json() sets application/json content in one call', function (): void {
+    $requestBody = RequestBody::create()->required()->json(Schema::object());
+
+    expect($requestBody->toArray())->toBe([
+        'required' => true,
+        'content' => [
+            'application/json' => [
+                'schema' => [
+                    'type' => 'object',
+                ],
+            ],
+        ],
+    ]);
+});
+
+it('json() accepts a Reference', function (): void {
+    $requestBody = RequestBody::create()->json(Reference::schema('CreateUser'));
+
+    expect($requestBody->toArray()['content']['application/json'])->toBe([
+        'schema' => [
+            '$ref' => '#/components/schemas/CreateUser',
+        ],
     ]);
 });

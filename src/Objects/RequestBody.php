@@ -7,6 +7,7 @@ namespace Cortex\OpenApi\Objects;
 use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
+use Cortex\JsonSchema\Contracts\JsonSchema;
 use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
 final class RequestBody implements Serializable, HasExtensionsInterface
@@ -56,6 +57,16 @@ final class RequestBody implements Serializable, HasExtensionsInterface
         }
 
         return $this;
+    }
+
+    /**
+     * Shorthand for ->content(MediaType::json($schema)).
+     *
+     * @param JsonSchema|array<string, mixed>|Reference|null $schema
+     */
+    public function json(JsonSchema|array|Reference|null $schema = null): self
+    {
+        return $this->content(MediaType::json($schema));
     }
 
     /**

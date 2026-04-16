@@ -7,6 +7,7 @@ use Cortex\OpenApi\Objects\Link;
 use Cortex\OpenApi\Objects\Header;
 use Cortex\OpenApi\Objects\Response;
 use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Reference;
 
 covers(Response::class);
 
@@ -99,4 +100,39 @@ it('adds links one at a time with link()', function (): void {
         ->link('next', Link::ref('#/components/links/NextUser'));
 
     expect($response->toArray()['links'])->toHaveKeys(['self', 'next']);
+});
+
+it('json() sets application/json content in one call', function (): void {
+    $response = Response::ok()->json(Schema::object()->properties(Schema::string('id')));
+
+    expect($response->toArray())->toBe([
+        'description' => 'OK',
+        'content' => [
+            'application/json' => [
+                'schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => [
+                            'type' => 'string',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ]);
+});
+
+it('json() accepts a Reference', function (): void {
+    $response = Response::notFound()->json(Reference::schema('Error'));
+
+    expect($response->toArray()['content']['application/json'])->toBe([
+        'schema' => [
+            '$ref' => '#/components/schemas/Error',
+        ],
+    ]);
+});
+
+it('json() with no schema emits an empty application/json key', function (): void {
+    expect(Response::ok()->json()->toArray())->toHaveKey('content');
+    expect(Response::ok()->json()->toArray()['content'])->toHaveKey('application/json');
 });
