@@ -14,8 +14,6 @@ final class Info implements Serializable, HasExtensionsInterface
     use BuildsArray;
     use HasExtensions;
 
-    private ?string $title = null;
-
     private ?string $summary = null;
 
     private ?string $description = null;
@@ -26,14 +24,17 @@ final class Info implements Serializable, HasExtensionsInterface
 
     private ?License $license = null;
 
-    private ?string $version = null;
+    private function __construct(
+        private string $title,
+        private string $version,
+    ) {}
 
-    public static function create(): self
+    public static function create(string $title, string $version): self
     {
-        return new self();
+        return new self($title, $version);
     }
 
-    public function title(?string $title): self
+    public function title(string $title): self
     {
         $this->title = $title;
 
@@ -75,7 +76,7 @@ final class Info implements Serializable, HasExtensionsInterface
         return $this;
     }
 
-    public function version(?string $version): self
+    public function version(string $version): self
     {
         $this->version = $version;
 

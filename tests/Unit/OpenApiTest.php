@@ -19,7 +19,7 @@ use Cortex\OpenApi\Objects\SecurityRequirement;
 covers(OpenApi::class);
 
 it('defaults to OpenAPI 3.1.0', function (): void {
-    $doc = OpenApi::create()->info(Info::create()->title('x')->version('1'));
+    $doc = OpenApi::create()->info(Info::create('x', '1'));
 
     expect($doc->toArray())->toBe([
         'openapi' => '3.1.0',
@@ -29,7 +29,7 @@ it('defaults to OpenAPI 3.1.0', function (): void {
         ],
     ]);
 
-    $doc = OpenApi::create(OpenApiVersion::V3_1_1)->info(Info::create()->title('x')->version('1'));
+    $doc = OpenApi::create(OpenApiVersion::V3_1_1)->info(Info::create('x', '1'));
 
     expect($doc->toArray())->toBe([
         'openapi' => '3.1.1',
@@ -42,7 +42,7 @@ it('defaults to OpenAPI 3.1.0', function (): void {
 
 it('composes the whole document', function (): void {
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('Example API')->version('1.0.0'))
+        ->info(Info::create('Example API', '1.0.0'))
         ->servers(Server::create('https://api.example.com'))
         ->tags(Tag::create('Users'))
         ->externalDocs(ExternalDocs::create('https://example.com/docs'))
@@ -107,14 +107,14 @@ it('composes the whole document', function (): void {
 });
 
 it('toJson produces valid JSON', function (): void {
-    $openApi = OpenApi::create()->info(Info::create()->title('x')->version('1'));
+    $openApi = OpenApi::create()->info(Info::create('x', '1'));
     $json = $openApi->toJson();
 
     expect(json_decode($json, true))->toBe($openApi->toArray());
 });
 
 it('toJson supports pretty printing', function (): void {
-    $openApi = OpenApi::create()->info(Info::create()->title('x')->version('1'));
+    $openApi = OpenApi::create()->info(Info::create('x', '1'));
 
     expect($openApi->toJson(JSON_PRETTY_PRINT))->toContain("\n");
 });
@@ -126,7 +126,7 @@ it('knows its OpenAPI version enum', function (): void {
 
 it('supports vendor extensions at the root', function (): void {
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('x')->version('1'))
+        ->info(Info::create('x', '1'))
         ->x('x-internal', true);
 
     expect($openApi->toArray()['x-internal'])->toBe(true);
@@ -134,7 +134,7 @@ it('supports vendor extensions at the root', function (): void {
 
 it('path() adds a PathItem or Reference by explicit pattern', function (): void {
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('Test')->version('1.0'))
+        ->info(Info::create('Test', '1.0'))
         ->path('/users', PathItem::create('/users')->operations(
             Operation::get()->operationId('users.index'),
         ))
@@ -150,7 +150,7 @@ it('path() adds a PathItem or Reference by explicit pattern', function (): void 
 
 it('adds webhooks one at a time with webhook()', function (): void {
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('x')->version('1'))
+        ->info(Info::create('x', '1'))
         ->webhook('user.created', PathItem::create('/user.created')->operations(
             Operation::post()->operationId('user.created'),
         ))

@@ -39,9 +39,7 @@ function buildPetstore(): OpenApi
 
     return OpenApi::create()
         ->info(
-            Info::create()
-                ->title('Swagger Petstore')
-                ->version('1.0.0')
+            Info::create('Swagger Petstore', '1.0.0')
                 ->description('A minimal example of the Petstore API.'),
         )
         ->servers(Server::create('https://petstore.example.com/v1'))
@@ -163,7 +161,7 @@ it('round-trips through YAML encoding', function (): void {
 it('embeds schemas without $schema or title', function (): void {
     // Inline schemas must not carry the JSON Schema $schema URI or a builder-assigned title.
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('x')->version('1'))
+        ->info(Info::create('x', '1'))
         ->paths(
             PathItem::create('/foo')->operations(
                 Operation::get()->responses(

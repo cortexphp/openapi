@@ -18,7 +18,7 @@ covers(OpenApi::class);
 
 it('accepts a minimal valid 3.1.0 document', function (): void {
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('x')->version('1.0.0'))
+        ->info(Info::create('x', '1.0.0'))
         ->paths(
             PathItem::create('/ping')->operations(
                 Operation::get()->responses(Response::ok()),
@@ -30,7 +30,7 @@ it('accepts a minimal valid 3.1.0 document', function (): void {
 
 it('accepts a minimal valid 3.1.1 document', function (): void {
     $openApi = OpenApi::create(OpenApiVersion::V3_1_1)
-        ->info(Info::create()->title('x')->version('1.0.0'))
+        ->info(Info::create('x', '1.0.0'))
         ->paths(
             PathItem::create('/ping')->operations(
                 Operation::get()->responses(Response::ok()),
@@ -42,7 +42,7 @@ it('accepts a minimal valid 3.1.1 document', function (): void {
 
 it('accepts a document with components, tags, and schemas', function (): void {
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('Example')->version('1.0.0'))
+        ->info(Info::create('Example', '1.0.0'))
         ->tags(Tag::create('Users'))
         ->components(Components::create()->schema('User', Schema::object()->properties(Schema::string('id'))))
         ->paths(
@@ -65,7 +65,7 @@ it('rejects a document missing info', function (): void {
 it('rejects a document with a bad response status key', function (): void {
     // 99 is not a valid HTTP status code, nor 'default'
     $openApi = OpenApi::create()
-        ->info(Info::create()->title('x')->version('1.0.0'))
+        ->info(Info::create('x', '1.0.0'))
         ->paths(
             PathItem::create('/ping')->operations(
                 Operation::get()->responses(Response::status(99)),
