@@ -1,0 +1,241 @@
+---
+title: Info & Metadata
+description: 'API title, version, contact, license, servers, tags, and external documentation'
+icon: 'info'
+---
+
+The top-level metadata of an OpenAPI document is set through a handful of objects: `Info`, `Server`, `Tag`, and `ExternalDocs`. These objects are small but important — documentation renderers use them for page titles, server drop-downs, and navigation grouping.
+
+## Info Object
+
+`Info` carries the required `title` and `version` fields, plus optional descriptive fields.
+
+```php
+use Cortex\OpenApi\Objects\Info;
+use Cortex\OpenApi\Objects\Contact;
+use Cortex\OpenApi\Objects\License;
+
+$info = Info::create()
+    ->title('Payments API')
+    ->version('2.1.0')
+    ->summary('Handles payment processing and refunds')
+    ->description('Full description with **Markdown** support.')
+    ->termsOfService('https://example.com/terms')
+    ->contact(
+        Contact::create()
+            ->name('API Support')
+            ->url('https://example.com/support')
+            ->email('api@example.com'),
+    )
+    ->license(License::create('MIT')->url('https://opensource.org/licenses/MIT'));
+```
+
+<AccordionGroup>
+<Accordion title="Generated JSON output">
+```json
+{
+  "title": "Payments API",
+  "version": "2.1.0",
+  "summary": "Handles payment processing and refunds",
+  "description": "Full description with **Markdown** support.",
+  "termsOfService": "https://example.com/terms",
+  "contact": {
+    "name": "API Support",
+    "url": "https://example.com/support",
+    "email": "api@example.com"
+  },
+  "license": {
+    "name": "MIT",
+    "url": "https://opensource.org/licenses/MIT"
+  }
+}
+```
+</Accordion>
+</AccordionGroup>
+
+### SPDX License Identifiers
+
+OpenAPI 3.1 supports SPDX license expressions in place of a URL. Use `->identifier()` instead of `->url()`.
+
+```php
+License::create('Apache 2.0')->identifier('Apache-2.0')
+License::create('MIT')->identifier('MIT')
+```
+
+<Note>
+`identifier` and `url` are mutually exclusive on the License object. Only set one.
+</Note>
+
+## Servers
+
+`Server` describes the base URLs where the API is hosted. You can define multiple servers — documentation tools typically render these as a drop-down.
+
+```php
+use Cortex\OpenApi\Objects\Server;
+use Cortex\OpenApi\Objects\ServerVariable;
+
+OpenApi::create()
+    ->servers(
+        Server::create('https://api.example.com/v2')->description('Production'),
+        Server::create('https://staging-api.example.com/v2')->description('Staging'),
+        Server::create('http://localhost:8080')->description('Local development'),
+    );
+```
+
+### Server Variables
+
+Server URLs can contain template variables wrapped in `{curly_braces}`. Declare them with `ServerVariable`.
+
+```php
+$server = Server::create('https://{tenant}.api.example.com/{version}')
+    ->description('Multi-tenant API')
+    ->variables(
+        ServerVariable::create('tenant', 'acme')
+            ->description('Your organization slug'),
+        ServerVariable::create('version', 'v2')
+            ->enum(['v1', 'v2'])
+            ->description('API version'),
+    );
+```
+
+<AccordionGroup>
+<Accordion title="Generated JSON output">
+```json
+{
+  "url": "https://{tenant}.api.example.com/{version}",
+  "description": "Multi-tenant API",
+  "variables": {
+    "tenant": {
+      "default": "acme",
+      "description": "Your organization slug"
+    },
+    "version": {
+      "default": "v2",
+      "enum": ["v1", "v2"],
+      "description": "API version"
+    }
+  }
+}
+```
+</Accordion>
+</AccordionGroup>
+
+### Overriding Servers Per-Path or Per-Operation
+
+Servers can be overridden at the path item or individual operation level. This is useful when some endpoints are hosted on a different base URL (for example, a file upload endpoint on a CDN subdomain).
+
+```php
+use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Operation;
+
+PathItem::create('/uploads')
+    ->servers(Server::create('https://uploads.example.com'))
+    ->operations(
+        Operation::post()
+            ->operationId('uploadFile')
+            ->servers(Server::create('https://cdn.example.com')), // operation-level override
+    );
+```
+
+## Tags
+
+Tags group operations together in documentation renderers. Declare them at the document level with `Tag`, then reference them by name string inside each operation.
+
+```php
+use Cortex\OpenApi\Objects\Tag;
+use Cortex\OpenApi\Objects\ExternalDocs;
+
+OpenApi::create()
+    ->tags(
+        Tag::create('users')
+            ->description('User account management'),
+        Tag::create('payments')
+            ->description('Payment processing and refunds')
+            ->externalDocs(
+                ExternalDocs::create('https://example.com/payments-guide')
+                    ->description('Full payment guide'),
+            ),
+    );
+```
+
+Reference a tag in an operation by its name string:
+
+```php
+Operation::get()->tags('users', 'payments')
+```
+
+<Tip>
+Tags defined at the document level appear in the order they are declared. Undeclared tags used in operations still work but won't have descriptions in the output.
+</Tip>
+
+## External Documentation
+
+`ExternalDocs` links to additional external documentation. It can appear at the document level or on individual operations and tags.
+
+```php
+use Cortex\OpenApi\Objects\ExternalDocs;
+
+// At the document level
+OpenApi::create()->externalDocs(
+    ExternalDocs::create('https://docs.example.com')
+        ->description('Full developer documentation'),
+);
+
+// On a tag
+Tag::create('payments')->externalDocs(
+    ExternalDocs::create('https://docs.example.com/payments'),
+);
+
+// On an operation
+Operation::get()->externalDocs(
+    ExternalDocs::create('https://docs.example.com/users/list'),
+);
+```
+
+## Putting It All Together
+
+A fully annotated document header:
+
+```php
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Info;
+use Cortex\OpenApi\Objects\Contact;
+use Cortex\OpenApi\Objects\License;
+use Cortex\OpenApi\Objects\Server;
+use Cortex\OpenApi\Objects\ServerVariable;
+use Cortex\OpenApi\Objects\Tag;
+use Cortex\OpenApi\Objects\ExternalDocs;
+
+$doc = OpenApi::create()
+    ->info(
+        Info::create()
+            ->title('Acme Platform API')
+            ->version('3.0.0')
+            ->summary('Powers the Acme product suite')
+            ->description(<<<'MD'
+                The Acme Platform API provides programmatic access to all Acme services.
+                All endpoints require authentication unless noted otherwise.
+                MD)
+            ->contact(
+                Contact::create()
+                    ->name('Acme Developer Relations')
+                    ->email('devrel@acme.example'),
+            )
+            ->license(License::create('Apache 2.0')->identifier('Apache-2.0')),
+    )
+    ->servers(
+        Server::create('https://api.acme.example/{version}')
+            ->variables(
+                ServerVariable::create('version', 'v3')->enum(['v2', 'v3']),
+            ),
+        Server::create('http://localhost:8080')->description('Local'),
+    )
+    ->tags(
+        Tag::create('accounts')->description('Account management'),
+        Tag::create('billing')->description('Billing and invoices'),
+    )
+    ->externalDocs(
+        ExternalDocs::create('https://developers.acme.example')
+            ->description('Developer portal'),
+    );
+```

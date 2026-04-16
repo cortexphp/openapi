@@ -1,5 +1,317 @@
 ---
 title: Quick Start
-description: 'TODO'
+description: 'Build, validate, and serialize a complete OpenAPI 3.1 document in minutes'
 icon: 'rocket'
 ---
+
+## Build Your First Document
+
+<Steps>
+<Step title="Define Your Schemas">
+  Use `cortexphp/json-schema` to describe your data shapes. These plug directly into the OpenAPI builder — no conversion needed.
+
+  ```php
+  use Cortex\JsonSchema\Schema;
+
+  $petSchema = Schema::object('Pet')->properties(
+      Schema::integer('id')->format('int64')->required(),
+      Schema::string('name')->required(),
+      Schema::string('tag'),
+  );
+
+  $errorSchema = Schema::object('Error')->properties(
+      Schema::integer('code')->format('int32')->required(),
+      Schema::string('message')->required(),
+  );
+  ```
+
+  <Check>
+  Schemas defined here are registered as reusable components and referenced anywhere via `$ref` pointers — define once, reference everywhere.
+  </Check>
+</Step>
+
+<Step title="Register Shared Components">
+  Place reusable schemas, parameters, and security schemes in `Components`. Once registered, they can be referenced by `$ref` pointer rather than repeated inline.
+
+  ```php
+  use Cortex\OpenApi\Objects\Components;
+  use Cortex\OpenApi\Objects\Parameter;
+  use Cortex\OpenApi\Objects\SecurityScheme;
+  use Cortex\OpenApi\Objects\OAuthFlows;
+  use Cortex\OpenApi\Objects\OAuthFlow;
+  use Cortex\OpenApi\Enums\In;
+
+  $components = Components::create()
+      ->schema('Pet', $petSchema)
+      ->schema('Error', $errorSchema)
+      ->parameter('PetId', Parameter::path('petId', Schema::integer()->format('int64')))
+      ->securityScheme('OAuth2', SecurityScheme::oauth2(
+          OAuthFlows::create()->authorizationCode(
+              OAuthFlow::create()
+                  ->authorizationUrl('https://example.com/oauth/authorize')
+                  ->tokenUrl('https://example.com/oauth/token')
+                  ->scopes([
+                      'read:pets'  => 'Read pets',
+                      'write:pets' => 'Modify pets',
+                  ]),
+          ),
+      ));
+  ```
+</Step>
+
+<Step title="Define Paths and Operations">
+  Describe your API endpoints with `PathItem` and `Operation`. Use `Reference::to()` to point at component schemas rather than embedding them repeatedly.
+
+  ```php
+  use Cortex\OpenApi\Objects\PathItem;
+  use Cortex\OpenApi\Objects\Operation;
+  use Cortex\OpenApi\Objects\Response;
+  use Cortex\OpenApi\Objects\MediaType;
+  use Cortex\OpenApi\Objects\RequestBody;
+  use Cortex\OpenApi\Objects\Reference;
+
+  $paths = [
+      PathItem::create('/pets')
+          ->operations(
+              Operation::get()
+                  ->operationId('listPets')
+                  ->tags('pets')
+                  ->parameters(
+                      Parameter::query('limit', Schema::integer()->minimum(1)->maximum(100))
+                          ->description('How many items to return (max 100)'),
+                  )
+                  ->responses(
+                      Response::ok()
+                          ->description('A paged array of pets')
+                          ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                      Response::default()
+                          ->description('Unexpected error')
+                          ->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                  ),
+
+              Operation::post()
+                  ->operationId('createPet')
+                  ->tags('pets')
+                  ->requestBody(
+                      RequestBody::create()
+                          ->required(true)
+                          ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                  )
+                  ->responses(
+                      Response::created()
+                          ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                  ),
+          ),
+
+      PathItem::create('/pets/{petId}')
+          ->parameters(Reference::to('#/components/parameters/PetId'))
+          ->operations(
+              Operation::get()
+                  ->operationId('showPetById')
+                  ->tags('pets')
+                  ->responses(
+                      Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                      Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                  ),
+          ),
+  ];
+  ```
+</Step>
+
+<Step title="Assemble the Root Document">
+  Combine everything into the top-level `OpenApi` object. Operations, paths, tags, servers, and security all live here.
+
+  ```php
+  use Cortex\OpenApi\OpenApi;
+  use Cortex\OpenApi\Objects\Info;
+  use Cortex\OpenApi\Objects\Server;
+  use Cortex\OpenApi\Objects\Tag;
+  use Cortex\OpenApi\Objects\SecurityRequirement;
+
+  $doc = OpenApi::create()
+      ->info(
+          Info::create()
+              ->title('Petstore API')
+              ->version('1.0.0')
+              ->description('A sample Petstore API demonstrating cortexphp/openapi.'),
+      )
+      ->servers(Server::create('https://petstore.example.com/v1'))
+      ->tags(Tag::create('pets')->description('Everything about pets'))
+      ->components($components)
+      ->security(SecurityRequirement::create('OAuth2', ['read:pets']))
+      ->paths(...$paths);
+  ```
+
+  <Check>
+  The document is fully assembled in memory. Nothing is written to disk yet — call a serialization method when ready.
+  </Check>
+</Step>
+
+<Step title="Validate and Serialize">
+  Validate the document against the official OpenAPI 3.1 meta-schema (bundled, offline), then export to your preferred format.
+
+  ```php
+  use Cortex\OpenApi\Exceptions\ValidationException;
+
+  // Validate — throws ValidationException with path-annotated error details if invalid
+  try {
+      $doc->validate();
+  } catch (ValidationException $e) {
+      echo $e->getMessage();
+      exit(1);
+  }
+
+  // Export as JSON
+  file_put_contents('openapi.json', $doc->toJson(JSON_PRETTY_PRINT));
+
+  // Export as YAML (requires symfony/yaml)
+  file_put_contents('openapi.yaml', $doc->toYaml());
+
+  // Or work with the raw PHP array
+  $array = $doc->toArray();
+  ```
+
+  <Warning>
+  `toYaml()` requires `symfony/yaml`. Install it with `composer require symfony/yaml` if needed.
+  </Warning>
+</Step>
+</Steps>
+
+## Named Constructors Cheat Sheet
+
+Most objects provide named constructors so you rarely need `new`. Here's a quick reference organized by object type.
+
+<Tabs>
+<Tab title="Operations">
+  ```php
+  Operation::get()
+  Operation::post()
+  Operation::put()
+  Operation::patch()
+  Operation::delete()
+  Operation::head()
+  Operation::options()
+  Operation::trace()
+  ```
+</Tab>
+
+<Tab title="Responses">
+  ```php
+  Response::ok()                   // 200 OK
+  Response::created()              // 201 Created
+  Response::accepted()             // 202 Accepted
+  Response::noContent()            // 204 No Content
+  Response::badRequest()           // 400 Bad Request
+  Response::unauthorized()         // 401 Unauthorized
+  Response::forbidden()            // 403 Forbidden
+  Response::notFound()             // 404 Not Found
+  Response::conflict()             // 409 Conflict
+  Response::unprocessable()        // 422 Unprocessable Entity
+  Response::tooManyRequests()      // 429 Too Many Requests
+  Response::internalServerError()  // 500 Internal Server Error
+  Response::default()              // 'default' catch-all key
+  Response::status(418)            // any custom status code
+  ```
+
+  Named constructors pre-populate the default description (e.g. `"Not Found"` for 404).
+  Override it by chaining `->description('Custom message')`.
+</Tab>
+
+<Tab title="Parameters">
+  ```php
+  // Path parameters are always required by the spec
+  Parameter::path('userId', Schema::string()->format('uuid'))
+
+  // Query, header, and cookie are optional by default
+  Parameter::query('page', Schema::integer()->minimum(1)->default(1))
+  Parameter::header('X-Request-Id', Schema::string())
+  Parameter::cookie('session_id', Schema::string())
+  ```
+
+  Pass `null` for `$schema` to set it separately via `->schema(...)`.
+</Tab>
+
+<Tab title="Media Types">
+  ```php
+  MediaType::json($schema)         // application/json
+  MediaType::xml($schema)          // application/xml
+  MediaType::form($schema)         // application/x-www-form-urlencoded
+  MediaType::multipart($schema)    // multipart/form-data
+  MediaType::text($schema)         // text/plain
+  MediaType::html($schema)         // text/html
+  MediaType::octetStream($schema)  // application/octet-stream
+  MediaType::of('image/png')       // any custom content type
+  ```
+
+  The `$schema` argument accepts a `JsonSchema` object, a `Reference`, or a plain `array`.
+</Tab>
+
+<Tab title="Security Schemes">
+  ```php
+  SecurityScheme::apiKey('X-API-Key', In::Header)
+  SecurityScheme::apiKey('api_key', In::Query)
+  SecurityScheme::http('bearer')->bearerFormat('JWT')
+  SecurityScheme::http('basic')
+  SecurityScheme::oauth2(OAuthFlows::create()->authorizationCode(...))
+  SecurityScheme::openIdConnect('https://example.com/.well-known/openid-configuration')
+  SecurityScheme::mutualTls()
+  ```
+</Tab>
+</Tabs>
+
+## Working with References
+
+`Reference::to()` creates a `$ref` to any component registered in `Components`. On the target class itself, `ref()` is a type-safe shortcut.
+
+```php
+use Cortex\OpenApi\Objects\Reference;
+
+// Generic reference — works for anything
+Reference::to('#/components/schemas/Pet')
+Reference::to('#/components/parameters/PetId')
+Reference::to('#/components/responses/NotFound')
+
+// Shortcut on the target class (equivalent, and communicates intent)
+Response::ref('#/components/responses/NotFound')
+Parameter::ref('#/components/parameters/PetId')
+RequestBody::ref('#/components/requestBodies/CreateUser')
+```
+
+## Vendor Extensions
+
+All objects support OpenAPI specification extensions via `->x()`. Keys are normalized to include the `x-` prefix automatically.
+
+```php
+$doc = OpenApi::create()
+    ->info(Info::create()->title('My API')->version('1.0.0'))
+    ->x('x-api-id', 'my-service-v1')    // prefix already present — used as-is
+    ->x('internal-owner', 'platform');   // prefix added automatically → x-internal-owner
+
+// Unset an extension by passing null
+$doc->x('x-internal-owner');
+```
+
+Extensions are serialized at the end of each object's output, in the order they were added.
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Paths & Operations" href="/openapi/paths-and-operations" icon="route">
+    Path items, operations, parameters, and how they compose together.
+  </Card>
+  <Card title="Request Bodies" href="/openapi/request-bodies" icon="arrow-up-from-bracket">
+    Request body definitions, content types, and multipart encoding.
+  </Card>
+  <Card title="Responses" href="/openapi/responses" icon="arrow-down-to-bracket">
+    Response objects, headers, examples, and response links.
+  </Card>
+  <Card title="Components" href="/openapi/components" icon="box">
+    Centralizing reusable definitions and referencing them with `$ref`.
+  </Card>
+  <Card title="Security" href="/openapi/security" icon="lock">
+    API Key, HTTP, OAuth 2.0, and OpenID Connect security schemes.
+  </Card>
+  <Card title="Webhooks & Callbacks" href="/openapi/webhooks-and-callbacks" icon="webhook">
+    Documenting server-sent events and operation callbacks.
+  </Card>
+</CardGroup>

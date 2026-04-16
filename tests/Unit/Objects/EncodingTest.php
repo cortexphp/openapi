@@ -6,6 +6,8 @@ use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\Header;
 use Cortex\OpenApi\Objects\Encoding;
 
+covers(Encoding::class);
+
 it('emits only the contentType by default', function (): void {
     expect(Encoding::create()->contentType('image/png')->toArray())->toBe([
         'contentType' => 'image/png',

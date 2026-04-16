@@ -1,0 +1,344 @@
+---
+title: Components
+description: 'Centralize reusable definitions and reference them with $ref'
+icon: 'box'
+---
+
+## Why Components?
+
+The `components` section is a central registry for anything you want to reuse. Once registered, any object can be referenced anywhere in the document with a `$ref` pointer instead of being repeated inline. This means a schema change only needs to happen in one place, and documentation tools render the component name as a clickable type link.
+
+```php
+use Cortex\OpenApi\Objects\Components;
+
+$components = Components::create()
+    ->schema('User', $userSchema)
+    ->response('NotFound', Response::notFound()->content(MediaType::json($errorSchema)))
+    ->parameter('PageSize', Parameter::query('pageSize', Schema::integer()->minimum(1)->maximum(100)))
+    ->securityScheme('BearerAuth', SecurityScheme::http('bearer')->bearerFormat('JWT'));
+```
+
+## What Can Be Registered
+
+Components supports ten registries, each addressable by its own `$ref` path:
+
+| Registry | Method | $ref prefix |
+|----------|--------|-------------|
+| Schemas | `->schema(name, schema)` | `#/components/schemas/` |
+| Responses | `->response(name, response)` | `#/components/responses/` |
+| Parameters | `->parameter(name, parameter)` | `#/components/parameters/` |
+| Examples | `->example(name, example)` | `#/components/examples/` |
+| Request Bodies | `->requestBody(name, body)` | `#/components/requestBodies/` |
+| Headers | `->header(name, header)` | `#/components/headers/` |
+| Security Schemes | `->securityScheme(name, scheme)` | `#/components/securitySchemes/` |
+| Links | `->link(name, link)` | `#/components/links/` |
+| Callbacks | `->callback(name, callback)` | `#/components/callbacks/` |
+| Path Items | `->pathItem(name, pathItem)` | `#/components/pathItems/` |
+
+## Schemas
+
+Register any `cortexphp/json-schema` schema or raw array by name:
+
+```php
+use Cortex\JsonSchema\Schema;
+
+$components = Components::create()
+    ->schema('User', Schema::object()->properties(
+        Schema::integer('id')->format('int64')->required(),
+        Schema::string('name')->required(),
+        Schema::string('email')->format('email')->required(),
+        Schema::string('role')->enum(['admin', 'editor', 'viewer'])->default('viewer'),
+    ))
+    ->schema('Error', Schema::object()->properties(
+        Schema::integer('code')->format('int32')->required(),
+        Schema::string('message')->required(),
+    ))
+    ->schema('Pagination', Schema::object()->properties(
+        Schema::integer('total')->required(),
+        Schema::integer('page')->required(),
+        Schema::integer('perPage')->required(),
+        Schema::boolean('hasMore')->required(),
+    ));
+```
+
+Reference schemas anywhere with `Reference::to()`:
+
+```php
+use Cortex\OpenApi\Objects\Reference;
+
+// In a MediaType
+MediaType::json(Reference::to('#/components/schemas/User'))
+
+// In a Parameter schema slot
+Parameter::query('filter', Reference::to('#/components/schemas/Filter'))
+
+// In a composed schema (allOf/oneOf/anyOf)
+Schema::object()->allOf(
+    Reference::to('#/components/schemas/BaseEntity'),
+    Schema::object()->properties(Schema::string('title')),
+)
+```
+
+## Parameters
+
+Shared parameters — particularly path parameters that appear on multiple paths — are ideal candidates for components:
+
+```php
+use Cortex\OpenApi\Objects\Parameter;
+
+$components = Components::create()
+    ->parameter('UserId',
+        Parameter::path('userId', Schema::integer()->format('int64'))
+            ->description('The unique user identifier'),
+    )
+    ->parameter('ArticleSlug',
+        Parameter::path('slug', Schema::string()->pattern('^[a-z0-9-]+$'))
+            ->description('The article slug'),
+    )
+    ->parameter('PageSize',
+        Parameter::query('pageSize', Schema::integer()->minimum(1)->maximum(100)->default(20))
+            ->description('Number of results per page'),
+    )
+    ->parameter('PageNumber',
+        Parameter::query('page', Schema::integer()->minimum(1)->default(1))
+            ->description('Page number'),
+    );
+```
+
+Reference parameters from path items:
+
+```php
+use Cortex\OpenApi\Objects\PathItem;
+
+PathItem::create('/users/{userId}/articles/{slug}')
+    ->parameters(
+        Reference::to('#/components/parameters/UserId'),
+        Reference::to('#/components/parameters/ArticleSlug'),
+    )
+    ->operations(
+        Operation::get()
+            ->operationId('users.articles.show')
+            ->parameters(
+                Reference::to('#/components/parameters/PageSize'),
+                Reference::to('#/components/parameters/PageNumber'),
+            ),
+    );
+```
+
+## Responses
+
+Centralize common error responses to avoid repeating them on every operation:
+
+```php
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+
+$errorSchema = Reference::to('#/components/schemas/Error');
+
+$components = Components::create()
+    ->response('BadRequest',
+        Response::badRequest()->content(MediaType::json($errorSchema)),
+    )
+    ->response('Unauthorized',
+        Response::unauthorized()->content(MediaType::json($errorSchema)),
+    )
+    ->response('Forbidden',
+        Response::forbidden()->content(MediaType::json($errorSchema)),
+    )
+    ->response('NotFound',
+        Response::notFound()->content(MediaType::json($errorSchema)),
+    )
+    ->response('UnprocessableEntity',
+        Response::unprocessable()->content(MediaType::json($errorSchema)),
+    );
+```
+
+Reference them from operations using `Response::ref()`:
+
+```php
+Operation::get()
+    ->responses(
+        Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/User'))),
+        Response::ref('#/components/responses/NotFound'),
+        Response::ref('#/components/responses/Unauthorized'),
+    );
+```
+
+## Request Bodies
+
+Shared request body definitions are useful when multiple operations accept the same payload shape:
+
+```php
+use Cortex\OpenApi\Objects\RequestBody;
+
+$components = Components::create()
+    ->requestBody('CreateUser',
+        RequestBody::create()
+            ->required(true)
+            ->content(MediaType::json(Reference::to('#/components/schemas/UserInput'))),
+    )
+    ->requestBody('UpdateUser',
+        RequestBody::create()
+            ->required(true)
+            ->content(MediaType::json(Reference::to('#/components/schemas/UserPatch'))),
+    );
+
+// Reference
+Operation::post()->requestBody(RequestBody::ref('#/components/requestBodies/CreateUser'));
+Operation::patch()->requestBody(RequestBody::ref('#/components/requestBodies/UpdateUser'));
+```
+
+## Security Schemes
+
+Security schemes are almost always defined in components and referenced from operations or the document root:
+
+```php
+use Cortex\OpenApi\Objects\SecurityScheme;
+use Cortex\OpenApi\Objects\OAuthFlows;
+use Cortex\OpenApi\Objects\OAuthFlow;
+use Cortex\OpenApi\Enums\In;
+
+$components = Components::create()
+    ->securityScheme('BearerAuth',
+        SecurityScheme::http('bearer')
+            ->bearerFormat('JWT')
+            ->description('JWT Bearer token from /auth/token'),
+    )
+    ->securityScheme('ApiKey',
+        SecurityScheme::apiKey('X-API-Key', In::Header)
+            ->description('API key passed in the X-API-Key header'),
+    )
+    ->securityScheme('OAuth2',
+        SecurityScheme::oauth2(
+            OAuthFlows::create()->authorizationCode(
+                OAuthFlow::create()
+                    ->authorizationUrl('https://auth.example.com/oauth/authorize')
+                    ->tokenUrl('https://auth.example.com/oauth/token')
+                    ->scopes([
+                        'read:users'  => 'Read user profiles',
+                        'write:users' => 'Create and modify users',
+                    ]),
+            ),
+        ),
+    );
+```
+
+See [Security](/openapi/security) for full coverage of authentication schemes.
+
+## Headers
+
+Shared response headers — such as rate-limit or tracing headers — can be registered once:
+
+```php
+use Cortex\OpenApi\Objects\Header;
+
+$components = Components::create()
+    ->header('X-Request-Id',
+        Header::create()
+            ->schema(Schema::string()->format('uuid'))
+            ->description('Echoed back for distributed tracing'),
+    )
+    ->header('X-RateLimit-Remaining',
+        Header::create()
+            ->schema(Schema::integer())
+            ->description('Number of requests remaining in the current window'),
+    );
+```
+
+Reference headers in a response's `->headers()` array:
+
+```php
+Response::ok()->headers([
+    'X-Request-Id'          => Reference::to('#/components/headers/X-Request-Id'),
+    'X-RateLimit-Remaining' => Reference::to('#/components/headers/X-RateLimit-Remaining'),
+])
+```
+
+## Examples
+
+Register named examples in components for reuse across multiple parameters, request bodies, and responses:
+
+```php
+use Cortex\OpenApi\Objects\Example;
+
+$components = Components::create()
+    ->example('AdminUser', Example::create()
+        ->summary('An admin user')
+        ->value(['id' => 1, 'name' => 'Admin', 'role' => 'admin']))
+    ->example('EditorUser', Example::create()
+        ->summary('An editor user')
+        ->value(['id' => 2, 'name' => 'Editor', 'role' => 'editor']));
+```
+
+## Path Items
+
+`pathItems` in components is a newer addition (OpenAPI 3.1) that lets you define reusable path item templates — useful for webhooks:
+
+```php
+$components = Components::create()
+    ->pathItem('UserEvent',
+        PathItem::create('')
+            ->operations(
+                Operation::post()
+                    ->operationId('webhook.user.event')
+                    ->requestBody(
+                        RequestBody::create()
+                            ->content(MediaType::json(Reference::to('#/components/schemas/UserEvent'))),
+                    )
+                    ->responses(Response::ok()),
+            ),
+    );
+```
+
+## Putting It Together
+
+A realistic components setup combining schemas, security, and shared responses:
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\Objects\Parameter;
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\SecurityScheme;
+use Cortex\OpenApi\Objects\OAuthFlows;
+use Cortex\OpenApi\Objects\OAuthFlow;
+use Cortex\OpenApi\Objects\Reference;
+
+$components = Components::create()
+    // Schemas
+    ->schema('User', Schema::object()->properties(
+        Schema::integer('id')->required(),
+        Schema::string('name')->required(),
+        Schema::string('email')->format('email')->required(),
+    ))
+    ->schema('Error', Schema::object()->properties(
+        Schema::string('message')->required(),
+        Schema::array('errors')->items(Schema::string()),
+    ))
+
+    // Shared parameters
+    ->parameter('PageSize',
+        Parameter::query('pageSize', Schema::integer()->minimum(1)->maximum(100)->default(20)),
+    )
+    ->parameter('PageNumber',
+        Parameter::query('page', Schema::integer()->minimum(1)->default(1)),
+    )
+
+    // Shared responses
+    ->response('NotFound',
+        Response::notFound()->content(
+            MediaType::json(Reference::to('#/components/schemas/Error')),
+        ),
+    )
+    ->response('Unauthorized',
+        Response::unauthorized()->content(
+            MediaType::json(Reference::to('#/components/schemas/Error')),
+        ),
+    )
+
+    // Security
+    ->securityScheme('BearerAuth',
+        SecurityScheme::http('bearer')->bearerFormat('JWT'),
+    );
+```

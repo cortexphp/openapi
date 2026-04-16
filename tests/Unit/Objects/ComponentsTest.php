@@ -18,6 +18,8 @@ use Cortex\OpenApi\Objects\Components;
 use Cortex\OpenApi\Objects\RequestBody;
 use Cortex\OpenApi\Objects\SecurityScheme;
 
+covers(Components::class);
+
 it('emits nothing by default', function (): void {
     expect(Components::create()->toArray())->toBe([]);
 });

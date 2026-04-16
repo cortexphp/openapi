@@ -6,6 +6,8 @@ use Cortex\OpenApi\Objects\Callback;
 use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Operation;
 
+covers(Callback::class);
+
 it('emits a map of expression to PathItem', function (): void {
     $callback = Callback::create()->expression(
         '{$request.body#/callbackUrl}',

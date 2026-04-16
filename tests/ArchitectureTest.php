@@ -7,6 +7,8 @@ use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
 use Cortex\OpenApi\Objects\SecurityRequirement;
 
+covers(Reference::class, SecurityRequirement::class, HasExtensions::class, Serializable::class);
+
 arch('every class in Objects/ implements Serializable')
     ->expect('Cortex\OpenApi\Objects')
     ->toImplement(Serializable::class);

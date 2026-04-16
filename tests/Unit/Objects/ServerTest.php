@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Cortex\OpenApi\Objects\Server;
 use Cortex\OpenApi\Objects\ServerVariable;
 
+covers(Server::class, ServerVariable::class);
+
 it('emits only url by default', function (): void {
     expect(Server::create('https://api.example.com')->toArray())->toBe([
         'url' => 'https://api.example.com',

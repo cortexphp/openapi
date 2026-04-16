@@ -1,5 +1,170 @@
 ---
 title: Introduction
-description: 'TODO'
+description: 'Fluent, type-safe OpenAPI 3.1 document builder for PHP, built on cortexphp/json-schema'
 icon: 'book-open'
 ---
+
+## What is OpenAPI?
+
+[OpenAPI](https://www.openapis.org/) is the industry-standard specification for describing HTTP APIs. An OpenAPI document describes your endpoints, request/response shapes, authentication schemes, and more — enabling documentation renderers, client SDK generators, and contract-testing tools to work from a single source of truth.
+
+OpenAPI 3.1 aligns fully with **JSON Schema 2020-12**, which means every schema object in your document is a proper JSON Schema. `cortexphp/openapi` is built on top of [`cortexphp/json-schema`](https://docs.cortexphp.com/json-schema/introduction) to take direct advantage of this — you build schemas with the sibling package and pass them straight into the OpenAPI builder, no conversion required.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Fluent Builder API"
+    href="/openapi/quickstart"
+    icon="wand"
+  >
+    Build complete OpenAPI 3.1 documents with an intuitive fluent interface and named constructors for every object type.
+  </Card>
+  <Card
+    title="JSON Schema Integration"
+    href="/openapi/quickstart"
+    icon="layers"
+  >
+    Schema slots accept `cortexphp/json-schema` objects directly. No conversion step — pass your schema builder output straight in.
+  </Card>
+  <Card
+    title="Built-in Validation"
+    href="/openapi/validation-and-output"
+    icon="shield-check"
+  >
+    Validate your document against the official OpenAPI 3.1 meta-schema before shipping, catching structural errors at build time.
+  </Card>
+  <Card
+    title="Multiple Output Formats"
+    href="/openapi/validation-and-output"
+    icon="file-output"
+  >
+    Serialize to PHP array, JSON, or YAML. JSON is built-in; YAML requires `symfony/yaml` as an optional runtime dependency.
+  </Card>
+  <Card
+    title="Full OpenAPI 3.1 Feature Set"
+    href="/openapi/webhooks-and-callbacks"
+    icon="sparkles"
+  >
+    Webhooks, callbacks, OAuth 2.0 flows, discriminators, links, and every other OpenAPI 3.1 object — all covered.
+  </Card>
+  <Card
+    title="Reusable Components"
+    href="/openapi/components"
+    icon="box"
+  >
+    Register schemas, responses, parameters, and more in a central Components object and reference them anywhere via `$ref`.
+  </Card>
+  <Card
+    title="Security Schemes"
+    href="/openapi/security"
+    icon="lock"
+  >
+    Express API Key, HTTP Bearer, OAuth 2.0, OpenID Connect, and Mutual TLS security with a concise fluent API.
+  </Card>
+  <Card
+    title="Type Safety"
+    icon="shield"
+  >
+    Built with PHP 8.3+ strict types, backed enums, and named constructors. PHPStan level 10 clean with 100% type coverage.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+Here's a complete, self-contained API document:
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Info;
+use Cortex\OpenApi\Objects\Server;
+use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Parameter;
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\RequestBody;
+
+$userSchema = Schema::object()->properties(
+    Schema::integer('id')->required(),
+    Schema::string('name')->required(),
+    Schema::string('email')->required(),
+);
+
+$doc = OpenApi::create()
+    ->info(Info::create()->title('Users API')->version('1.0.0'))
+    ->servers(Server::create('https://api.example.com'))
+    ->paths(
+        PathItem::create('/users')->operations(
+            Operation::get()
+                ->operationId('users.list')
+                ->summary('List all users')
+                ->parameters(
+                    Parameter::query('page', Schema::integer()->minimum(1)),
+                )
+                ->responses(
+                    Response::ok()
+                        ->description('A list of users')
+                        ->content(MediaType::json(Schema::array()->items($userSchema))),
+                ),
+
+            Operation::post()
+                ->operationId('users.create')
+                ->summary('Create a user')
+                ->requestBody(
+                    RequestBody::create()
+                        ->required(true)
+                        ->content(MediaType::json($userSchema)),
+                )
+                ->responses(
+                    Response::created()->content(MediaType::json($userSchema)),
+                    Response::badRequest(),
+                ),
+        ),
+    );
+
+// Validate, then export
+$doc->validate();
+echo $doc->toJson(JSON_PRETTY_PRINT);
+```
+
+<Note>
+This package requires PHP 8.3 or higher. `symfony/yaml` is an optional runtime dependency — only needed if you call `toYaml()`.
+</Note>
+
+## How It Relates to cortexphp/json-schema
+
+OpenAPI 3.1 embeds JSON Schema 2020-12 for all schema objects. Rather than duplicating schema-building logic, this package accepts `Cortex\JsonSchema\Contracts\JsonSchema` instances wherever the spec says "Schema Object":
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Parameter;
+
+// Build a schema with cortexphp/json-schema
+$addressSchema = Schema::object()->properties(
+    Schema::string('street')->required(),
+    Schema::string('city')->required(),
+    Schema::string('postcode')->pattern('^\d{5}$'),
+);
+
+// Pass it directly into any OpenAPI schema slot
+MediaType::json($addressSchema);
+Parameter::query('filter', Schema::string()->enum(['active', 'archived']));
+```
+
+When serializing, `$schema` URI and `title` are automatically stripped from inline schemas per the OpenAPI spec — the sibling schema object is never mutated.
+
+## OpenAPI Version Support
+
+<Info>
+The default version is **3.1.0**. Use `OpenApi::v311()` to target the 3.1.1 revision, which includes clarifications and minor fixes.
+</Info>
+
+| Version | Status | Named Constructor |
+|---------|--------|-------------------|
+| 3.1.0 | Supported | `OpenApi::create()` or `OpenApi::v310()` |
+| 3.1.1 | Supported | `OpenApi::v311()` |
+
+Both versions ship with their official meta-schema bundled — validation works fully offline.

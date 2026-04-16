@@ -15,6 +15,8 @@ use Cortex\OpenApi\Enums\OpenApiVersion;
 use Cortex\OpenApi\Objects\ExternalDocs;
 use Cortex\OpenApi\Objects\SecurityRequirement;
 
+covers(OpenApi::class);
+
 it('defaults to OpenAPI 3.1.0', function (): void {
     $doc = OpenApi::create()->info(Info::create()->title('x')->version('1'));
 

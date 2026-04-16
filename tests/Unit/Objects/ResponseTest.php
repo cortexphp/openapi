@@ -8,6 +8,8 @@ use Cortex\OpenApi\Objects\Header;
 use Cortex\OpenApi\Objects\Response;
 use Cortex\OpenApi\Objects\MediaType;
 
+covers(Response::class);
+
 it('named 200 response uses "OK" description by default', function (): void {
     expect(Response::ok()->getStatusCode())->toBe('200');
     expect(Response::ok()->toArray())->toBe([

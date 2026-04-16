@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Cortex\OpenApi\Concerns\HasExtensions;
 
+covers(HasExtensions::class);
+
 /**
  * Fixture consumer used purely to exercise the HasExtensions trait.
  */

@@ -22,6 +22,8 @@ use Cortex\OpenApi\Objects\RequestBody;
 use Cortex\OpenApi\Objects\SecurityScheme;
 use Cortex\OpenApi\Objects\SecurityRequirement;
 
+covers(OpenApi::class);
+
 function buildPetstore(): OpenApi
 {
     $objectSchema = Schema::object('Pet')->properties(

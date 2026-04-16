@@ -1,0 +1,319 @@
+---
+title: Webhooks & Callbacks
+description: 'Document outgoing webhooks and operation-level callbacks'
+icon: 'webhook'
+---
+
+## Webhooks
+
+Webhooks are HTTP requests that **your server sends** to a subscriber-provided URL when an event occurs. In OpenAPI 3.1, they are documented in the top-level `webhooks` map — separate from API paths but structured identically using `PathItem` and `Operation`.
+
+```php
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\RequestBody;
+use Cortex\JsonSchema\Schema;
+
+$doc = OpenApi::create()
+    ->info(Info::create()->title('Events API')->version('1.0.0'))
+    ->webhooks([
+        'user.created' => PathItem::create('')
+            ->operations(
+                Operation::post()
+                    ->operationId('webhook.user.created')
+                    ->summary('User Created')
+                    ->description('Fired when a new user account is created.')
+                    ->requestBody(
+                        RequestBody::create()
+                            ->required(true)
+                            ->content(
+                                MediaType::json(
+                                    Schema::object()->properties(
+                                        Schema::string('event')->enum(['user.created'])->required(),
+                                        Schema::string('timestamp')->format('date-time')->required(),
+                                        Schema::object('data')->properties(
+                                            Schema::integer('id')->required(),
+                                            Schema::string('email')->format('email')->required(),
+                                            Schema::string('name')->required(),
+                                        )->required(),
+                                    ),
+                                ),
+                            ),
+                    )
+                    ->responses(
+                        Response::ok()->description('Webhook received and acknowledged'),
+                        Response::noContent()->description('Webhook received, no response body'),
+                    ),
+            ),
+    ]);
+```
+
+<Note>
+The path string passed to `PathItem::create()` is ignored for webhooks — the key in the `webhooks` array is the webhook name. Pass an empty string or a descriptive placeholder like `'{$request.body#/callbackUrl}'` for clarity.
+</Note>
+
+### Multiple Webhook Events
+
+Pass multiple entries to the `webhooks` array, one per event type:
+
+```php
+$doc->webhooks([
+    'order.placed' => PathItem::create('')->operations(
+        Operation::post()
+            ->operationId('webhook.order.placed')
+            ->summary('Order Placed')
+            ->requestBody(
+                RequestBody::create()
+                    ->content(MediaType::json($orderEventSchema)),
+            )
+            ->responses(Response::ok()),
+    ),
+
+    'order.shipped' => PathItem::create('')->operations(
+        Operation::post()
+            ->operationId('webhook.order.shipped')
+            ->summary('Order Shipped')
+            ->requestBody(
+                RequestBody::create()
+                    ->content(MediaType::json($shipmentEventSchema)),
+            )
+            ->responses(Response::ok()),
+    ),
+
+    'order.cancelled' => PathItem::create('')->operations(
+        Operation::post()
+            ->operationId('webhook.order.cancelled')
+            ->summary('Order Cancelled')
+            ->requestBody(
+                RequestBody::create()
+                    ->content(MediaType::json($cancellationEventSchema)),
+            )
+            ->responses(Response::ok()),
+    ),
+]);
+```
+
+### Webhook Schemas as Components
+
+Register webhook payload schemas in `Components` to reference them in both the webhook definition and any related API responses:
+
+```php
+use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\Objects\Reference;
+
+$eventEnvelope = Schema::object()->properties(
+    Schema::string('event')->required(),
+    Schema::string('id')->format('uuid')->required(),
+    Schema::string('timestamp')->format('date-time')->required(),
+    Schema::string('apiVersion')->required(),
+);
+
+$components = Components::create()
+    ->schema('EventEnvelope', $eventEnvelope)
+    ->schema('UserCreatedPayload', Schema::object()
+        ->allOf(
+            Reference::to('#/components/schemas/EventEnvelope'),
+            Schema::object()->properties(
+                Schema::object('data')->properties(
+                    Schema::integer('id')->required(),
+                    Schema::string('email')->format('email')->required(),
+                )->required(),
+            ),
+        ))
+    ->schema('OrderPlacedPayload', Schema::object()
+        ->allOf(
+            Reference::to('#/components/schemas/EventEnvelope'),
+            Schema::object()->properties(
+                Schema::object('data')->properties(
+                    Schema::integer('orderId')->required(),
+                    Schema::number('total')->required(),
+                )->required(),
+            ),
+        ));
+
+$doc->components($components)->webhooks([
+    'user.created' => PathItem::create('')->operations(
+        Operation::post()
+            ->operationId('webhook.user.created')
+            ->requestBody(
+                RequestBody::create()->content(
+                    MediaType::json(Reference::to('#/components/schemas/UserCreatedPayload')),
+                ),
+            )
+            ->responses(Response::ok()),
+    ),
+]);
+```
+
+## Callbacks
+
+Callbacks are operation-level webhooks. An operation declares that, after it completes, your server will call back to a URL provided in the **request** (typically in the request body or a parameter). The callback URL is expressed as a runtime expression.
+
+```php
+use Cortex\OpenApi\Objects\Callback;
+
+Operation::post()
+    ->operationId('subscriptions.create')
+    ->summary('Subscribe to events')
+    ->requestBody(
+        RequestBody::create()
+            ->required(true)
+            ->content(
+                MediaType::json(
+                    Schema::object()->properties(
+                        Schema::string('callbackUrl')->format('uri')->required(),
+                        Schema::array('events')->items(
+                            Schema::string()->enum(['user.created', 'user.deleted']),
+                        )->required(),
+                    ),
+                ),
+            ),
+    )
+    ->responses(
+        Response::created()->description('Subscription registered'),
+    )
+    ->callbacks([
+        'onEvent' => Callback::create()
+            ->expression(
+                '{$request.body#/callbackUrl}',
+                PathItem::create('')->operations(
+                    Operation::post()
+                        ->requestBody(
+                            RequestBody::create()
+                                ->content(MediaType::json($eventSchema)),
+                        )
+                        ->responses(
+                            Response::ok()->description('Callback acknowledged'),
+                        ),
+                ),
+            ),
+    ]);
+```
+
+### Runtime Expressions
+
+The key passed to `->expression()` is a runtime expression evaluated against the original API request:
+
+| Expression | Resolves to |
+|------------|-------------|
+| `{$url}` | The request URL |
+| `{$request.body#/callbackUrl}` | `callbackUrl` field in the JSON request body |
+| `{$request.query.hook}` | The `hook` query parameter |
+| `{$request.header.X-Webhook-Url}` | The `X-Webhook-Url` request header |
+| `{$response.body#/links/events}` | A field in the JSON response body |
+
+### Named Callbacks in Components
+
+Register reusable callbacks in `Components` to avoid defining them inline on every operation:
+
+```php
+$components = Components::create()
+    ->callback('EventWebhook',
+        Callback::create()
+            ->expression(
+                '{$request.body#/callbackUrl}',
+                PathItem::create('')->operations(
+                    Operation::post()
+                        ->requestBody(
+                            RequestBody::create()
+                                ->content(MediaType::json(Reference::to('#/components/schemas/Event'))),
+                        )
+                        ->responses(Response::ok()),
+                ),
+            ),
+    );
+
+// Reference from operations
+Operation::post()
+    ->operationId('hooks.subscribe')
+    ->callbacks([
+        'onEvent' => Callback::ref('#/components/callbacks/EventWebhook'),
+    ]);
+```
+
+## Complete Example
+
+A document combining both webhooks and callbacks:
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Info;
+use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\RequestBody;
+use Cortex\OpenApi\Objects\Callback;
+use Cortex\OpenApi\Objects\Reference;
+
+$eventSchema = Schema::object()->properties(
+    Schema::string('type')->required(),
+    Schema::string('id')->format('uuid')->required(),
+    Schema::string('timestamp')->format('date-time')->required(),
+    Schema::object('payload')->required(),
+);
+
+$doc = OpenApi::create()
+    ->info(Info::create()->title('Webhook Platform')->version('1.0.0'))
+    ->components(
+        Components::create()
+            ->schema('Event', $eventSchema)
+            ->callback('GenericWebhook',
+                Callback::create()->expression(
+                    '{$request.body#/callbackUrl}',
+                    PathItem::create('')->operations(
+                        Operation::post()
+                            ->requestBody(
+                                RequestBody::create()->content(
+                                    MediaType::json(Reference::to('#/components/schemas/Event')),
+                                ),
+                            )
+                            ->responses(Response::ok()),
+                    ),
+                ),
+            ),
+    )
+    // Outgoing webhooks (server → subscriber)
+    ->webhooks([
+        'payment.succeeded' => PathItem::create('')->operations(
+            Operation::post()
+                ->operationId('webhook.payment.succeeded')
+                ->summary('Payment Succeeded')
+                ->requestBody(
+                    RequestBody::create()->content(
+                        MediaType::json(Reference::to('#/components/schemas/Event')),
+                    ),
+                )
+                ->responses(Response::ok()),
+        ),
+    ])
+    ->paths(
+        // Subscription endpoint with callback declaration
+        PathItem::create('/webhooks/subscribe')->operations(
+            Operation::post()
+                ->operationId('webhooks.subscribe')
+                ->summary('Register a webhook endpoint')
+                ->requestBody(
+                    RequestBody::create()
+                        ->required(true)
+                        ->content(
+                            MediaType::json(Schema::object()->properties(
+                                Schema::string('callbackUrl')->format('uri')->required(),
+                                Schema::array('events')
+                                    ->items(Schema::string())
+                                    ->required(),
+                            )),
+                        ),
+                )
+                ->responses(Response::created())
+                ->callbacks([
+                    'onEvent' => Callback::ref('#/components/callbacks/GenericWebhook'),
+                ]),
+        ),
+    );
+```

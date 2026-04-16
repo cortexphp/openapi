@@ -7,6 +7,8 @@ use Cortex\OpenApi\Objects\OAuthFlow;
 use Cortex\OpenApi\Objects\OAuthFlows;
 use Cortex\OpenApi\Objects\SecurityScheme;
 
+covers(SecurityScheme::class);
+
 it('builds an apiKey scheme', function (): void {
     $securityScheme = SecurityScheme::apiKey('X-API-Key', In::Header)
         ->description('API key auth');

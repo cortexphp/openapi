@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Contracts\Serializable;
 
+covers(Reference::class);
+
 it('builds a basic $ref array', function (): void {
     $reference = Reference::to('#/components/schemas/User');
 

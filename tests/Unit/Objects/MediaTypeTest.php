@@ -7,6 +7,8 @@ use Cortex\OpenApi\Objects\Example;
 use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\Reference;
 
+covers(MediaType::class);
+
 it('knows its own content type', function (): void {
     expect(MediaType::json()->getContentType())->toBe('application/json');
     expect(MediaType::xml()->getContentType())->toBe('application/xml');

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Cortex\OpenApi\Objects\Xml;
 
+covers(Xml::class);
+
 it('emits nothing by default', function (): void {
     expect(Xml::create()->toArray())->toBe([]);
 });

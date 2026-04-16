@@ -6,6 +6,8 @@ use Cortex\OpenApi\Objects\Info;
 use Cortex\OpenApi\Objects\Contact;
 use Cortex\OpenApi\Objects\License;
 
+covers(Info::class, Contact::class, License::class);
+
 it('emits only title and version by default', function (): void {
     $info = Info::create()->title('API')->version('1.0.0');
 

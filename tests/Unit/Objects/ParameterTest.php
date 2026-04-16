@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\Parameter;
 
+covers(Parameter::class);
+
 it('requires path parameters to be required', function (): void {
     $parameter = Parameter::path('id', Schema::string());
 

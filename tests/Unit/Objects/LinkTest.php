@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Cortex\OpenApi\Objects\Link;
 use Cortex\OpenApi\Objects\Server;
 
+covers(Link::class);
+
 it('emits nothing when empty', function (): void {
     expect(Link::create()->toArray())->toBe([]);
 });

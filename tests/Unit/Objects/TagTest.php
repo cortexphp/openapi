@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Cortex\OpenApi\Objects\Tag;
 use Cortex\OpenApi\Objects\ExternalDocs;
 
+covers(Tag::class);
+
 it('emits only name by default', function (): void {
     expect(Tag::create('Users')->toArray())->toBe([
         'name' => 'Users',

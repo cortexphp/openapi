@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Cortex\OpenApi\Objects\Example;
 
+covers(Example::class);
+
 it('emits an empty array when no fields are set', function (): void {
     expect(Example::create()->toArray())->toBe([]);
 });

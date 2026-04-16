@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Cortex\OpenApi\Objects\OAuthFlow;
 use Cortex\OpenApi\Objects\OAuthFlows;
 
+covers(OAuthFlows::class, OAuthFlow::class);
+
 it('emits nothing by default', function (): void {
     expect(OAuthFlows::create()->toArray())->toBe([]);
 });

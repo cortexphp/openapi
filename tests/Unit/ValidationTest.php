@@ -14,6 +14,8 @@ use Cortex\OpenApi\Objects\Components;
 use Cortex\OpenApi\Enums\OpenApiVersion;
 use Cortex\OpenApi\Exceptions\ValidationException;
 
+covers(OpenApi::class);
+
 it('accepts a minimal valid 3.1.0 document', function (): void {
     $openApi = OpenApi::create()
         ->info(Info::create()->title('x')->version('1.0.0'))

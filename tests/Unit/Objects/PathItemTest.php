@@ -8,6 +8,8 @@ use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Operation;
 use Cortex\OpenApi\Objects\Parameter;
 
+covers(PathItem::class);
+
 it('knows its own path', function (): void {
     expect(PathItem::create('/users')->getPath())->toBe('/users');
 });

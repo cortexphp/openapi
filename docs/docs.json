@@ -33,6 +33,18 @@
                             "openapi/installation",
                             "openapi/quickstart"
                         ]
+                    },
+                    {
+                        "group": "Core Concepts",
+                        "pages": [
+                            "openapi/info-and-metadata",
+                            "openapi/paths-and-operations",
+                            "openapi/request-bodies",
+                            "openapi/responses",
+                            "openapi/components",
+                            "openapi/security",
+                            "openapi/webhooks-and-callbacks"
+                        ]
                     }
                 ]
             }

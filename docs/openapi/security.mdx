@@ -1,0 +1,331 @@
+---
+title: Security
+description: 'API Key, HTTP, OAuth 2.0, OpenID Connect, and Mutual TLS security schemes'
+icon: 'lock'
+---
+
+## Overview
+
+OpenAPI security works in two parts:
+
+1. **Declare** a `SecurityScheme` in `Components`, giving it a name.
+2. **Apply** it with a `SecurityRequirement` — either globally on the document or per-operation.
+
+```php
+use Cortex\OpenApi\Objects\SecurityScheme;
+use Cortex\OpenApi\Objects\SecurityRequirement;
+use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\OpenApi;
+
+// 1. Declare
+$components = Components::create()
+    ->securityScheme('BearerAuth', SecurityScheme::http('bearer')->bearerFormat('JWT'));
+
+// 2. Apply globally
+$doc = OpenApi::create()
+    ->components($components)
+    ->security(SecurityRequirement::create('BearerAuth'));
+```
+
+## Security Scheme Types
+
+### API Key
+
+API keys can be sent in a query parameter, request header, or cookie.
+
+<Tabs>
+<Tab title="Header">
+  ```php
+  use Cortex\OpenApi\Enums\In;
+
+  SecurityScheme::apiKey('X-API-Key', In::Header)
+      ->description('Pass your API key in the X-API-Key header')
+  ```
+</Tab>
+<Tab title="Query parameter">
+  ```php
+  SecurityScheme::apiKey('api_key', In::Query)
+      ->description('Pass your API key as a query parameter')
+  ```
+</Tab>
+<Tab title="Cookie">
+  ```php
+  SecurityScheme::apiKey('session_id', In::Cookie)
+      ->description('Session cookie set on login')
+  ```
+</Tab>
+</Tabs>
+
+### HTTP
+
+`http` covers standard HTTP authentication schemes defined in the IANA registry.
+
+<Tabs>
+<Tab title="Bearer (JWT)">
+  ```php
+  SecurityScheme::http('bearer')
+      ->bearerFormat('JWT')
+      ->description('JWT token from /auth/token')
+  ```
+</Tab>
+<Tab title="Basic">
+  ```php
+  SecurityScheme::http('basic')
+      ->description('HTTP Basic authentication (base64-encoded credentials)')
+  ```
+</Tab>
+<Tab title="Digest">
+  ```php
+  SecurityScheme::http('digest')
+  ```
+</Tab>
+</Tabs>
+
+### OAuth 2.0
+
+OAuth 2.0 requires an `OAuthFlows` object specifying which grant types your server supports. Each flow is configured independently.
+
+<Tabs>
+<Tab title="Authorization Code">
+  ```php
+  use Cortex\OpenApi\Objects\OAuthFlows;
+  use Cortex\OpenApi\Objects\OAuthFlow;
+
+  SecurityScheme::oauth2(
+      OAuthFlows::create()->authorizationCode(
+          OAuthFlow::create()
+              ->authorizationUrl('https://auth.example.com/oauth/authorize')
+              ->tokenUrl('https://auth.example.com/oauth/token')
+              ->refreshUrl('https://auth.example.com/oauth/token') // optional
+              ->scopes([
+                  'read:users'  => 'Read user profiles',
+                  'write:users' => 'Create and update users',
+                  'admin'       => 'Full administrative access',
+              ]),
+      ),
+  )
+  ```
+</Tab>
+<Tab title="Client Credentials">
+  ```php
+  SecurityScheme::oauth2(
+      OAuthFlows::create()->clientCredentials(
+          OAuthFlow::create()
+              ->tokenUrl('https://auth.example.com/oauth/token')
+              ->scopes([
+                  'read:reports'  => 'Access reports',
+                  'write:reports' => 'Create reports',
+              ]),
+      ),
+  )
+  ```
+</Tab>
+<Tab title="Password">
+  ```php
+  SecurityScheme::oauth2(
+      OAuthFlows::create()->password(
+          OAuthFlow::create()
+              ->tokenUrl('https://auth.example.com/oauth/token')
+              ->scopes(['profile' => 'Access profile']),
+      ),
+  )
+  ```
+</Tab>
+<Tab title="Implicit">
+  ```php
+  SecurityScheme::oauth2(
+      OAuthFlows::create()->implicit(
+          OAuthFlow::create()
+              ->authorizationUrl('https://auth.example.com/oauth/authorize')
+              ->scopes(['profile' => 'Access profile']),
+      ),
+  )
+  ```
+</Tab>
+<Tab title="Multiple flows">
+  ```php
+  // Declare multiple flows on a single scheme
+  SecurityScheme::oauth2(
+      OAuthFlows::create()
+          ->authorizationCode(
+              OAuthFlow::create()
+                  ->authorizationUrl('https://auth.example.com/oauth/authorize')
+                  ->tokenUrl('https://auth.example.com/oauth/token')
+                  ->scopes(['read:data' => 'Read data', 'write:data' => 'Write data']),
+          )
+          ->clientCredentials(
+              OAuthFlow::create()
+                  ->tokenUrl('https://auth.example.com/oauth/token')
+                  ->scopes(['read:data' => 'Read data']),
+          ),
+  )
+  ```
+</Tab>
+</Tabs>
+
+### OpenID Connect
+
+For OIDC, provide the URL of the discovery endpoint. Scopes are resolved from the discovery document at runtime.
+
+```php
+SecurityScheme::openIdConnect('https://auth.example.com/.well-known/openid-configuration')
+    ->description('OpenID Connect authentication')
+```
+
+### Mutual TLS
+
+`mutualTls` requires the client to present a TLS client certificate. No additional configuration needed.
+
+```php
+SecurityScheme::mutualTls()
+    ->description('Client certificate required')
+```
+
+## Applying Security
+
+### Document-Level (Global)
+
+Security applied at the document level is inherited by every operation unless explicitly overridden.
+
+```php
+use Cortex\OpenApi\Objects\SecurityRequirement;
+
+// Single scheme, no scopes (e.g. API key or HTTP bearer)
+OpenApi::create()->security(
+    SecurityRequirement::create('BearerAuth'),
+);
+
+// With OAuth scopes
+OpenApi::create()->security(
+    SecurityRequirement::create('OAuth2', ['read:users', 'write:users']),
+);
+
+// Multiple schemes — client must satisfy ALL (logical AND)
+OpenApi::create()->security(
+    SecurityRequirement::create('BearerAuth'),
+    SecurityRequirement::create('ApiKey'),
+);
+```
+
+### Operation-Level
+
+Override or extend security on a specific operation using `Operation::security()`:
+
+```php
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\SecurityRequirement;
+
+// Restrict to a specific scope on this operation
+Operation::get()
+    ->operationId('admin.users.list')
+    ->security(SecurityRequirement::create('OAuth2', ['admin']))
+
+// Accept multiple schemes (client chooses one — logical OR via multiple requirements)
+Operation::get()
+    ->operationId('reports.show')
+    ->security(
+        SecurityRequirement::create('BearerAuth'),
+        SecurityRequirement::create('ApiKey'),
+    )
+```
+
+### Making an Operation Public
+
+To exempt a specific operation from the global security requirement, apply an empty security requirement:
+
+```php
+// Disable security for a public endpoint
+Operation::get()
+    ->operationId('health.check')
+    ->security(SecurityRequirement::public())
+```
+
+<Note>
+`SecurityRequirement::public()` emits an empty object `{}` in the security array, which is how the OpenAPI spec signals "no security required" at the operation level.
+</Note>
+
+## Combining Schemes (AND vs OR)
+
+The OpenAPI spec models security requirements as:
+
+- **Multiple items in `security`** → logical **OR** (client satisfies any one)
+- **Multiple schemes inside one `SecurityRequirement`** → logical **AND** (client satisfies all)
+
+```php
+// OR: bearer token OR api key — client picks either
+Operation::get()->security(
+    SecurityRequirement::create('BearerAuth'),
+    SecurityRequirement::create('ApiKey'),
+)
+
+// AND: both bearer token AND a specific api key
+// (rarely used, but valid)
+// Expressed as a single requirement containing both scheme names.
+// The SecurityRequirement::create() API covers one scheme at a time;
+// use multiple calls for OR semantics.
+```
+
+## Complete Example
+
+A document with multiple declared schemes, a global default, and per-operation overrides:
+
+```php
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Info;
+use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\Objects\SecurityScheme;
+use Cortex\OpenApi\Objects\SecurityRequirement;
+use Cortex\OpenApi\Objects\OAuthFlows;
+use Cortex\OpenApi\Objects\OAuthFlow;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Enums\In;
+
+$doc = OpenApi::create()
+    ->info(Info::create()->title('Acme API')->version('1.0.0'))
+    ->components(
+        Components::create()
+            ->securityScheme('BearerAuth',
+                SecurityScheme::http('bearer')
+                    ->bearerFormat('JWT')
+                    ->description('Short-lived JWT token from /auth/token'),
+            )
+            ->securityScheme('ApiKey',
+                SecurityScheme::apiKey('X-API-Key', In::Header)
+                    ->description('Long-lived API key for server-to-server calls'),
+            )
+            ->securityScheme('OAuth2',
+                SecurityScheme::oauth2(
+                    OAuthFlows::create()->authorizationCode(
+                        OAuthFlow::create()
+                            ->authorizationUrl('https://auth.acme.example/authorize')
+                            ->tokenUrl('https://auth.acme.example/token')
+                            ->scopes([
+                                'read:resources'  => 'Read access',
+                                'write:resources' => 'Write access',
+                                'admin'           => 'Administrative access',
+                            ]),
+                    ),
+                ),
+            ),
+    )
+    // Default: any authenticated request (bearer OR API key)
+    ->security(
+        SecurityRequirement::create('BearerAuth'),
+        SecurityRequirement::create('ApiKey'),
+    )
+    ->paths(
+        // Public endpoint — override global security
+        PathItem::create('/health')->operations(
+            Operation::get()
+                ->operationId('health.check')
+                ->security(SecurityRequirement::public()),
+        ),
+
+        // Elevated scope for admin endpoint
+        PathItem::create('/admin/users')->operations(
+            Operation::get()
+                ->operationId('admin.users.list')
+                ->security(SecurityRequirement::create('OAuth2', ['admin'])),
+        ),
+    );
+```

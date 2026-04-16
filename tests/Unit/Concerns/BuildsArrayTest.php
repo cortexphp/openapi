@@ -8,6 +8,8 @@ use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
 use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
+covers(BuildsArray::class, HasExtensions::class);
+
 final class BuildsArrayFixture implements HasExtensionsInterface
 {
     use BuildsArray;

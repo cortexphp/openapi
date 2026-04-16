@@ -6,6 +6,8 @@ use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\RequestBody;
 
+covers(RequestBody::class);
+
 it('builds a required JSON request body', function (): void {
     $requestBody = RequestBody::create()
         ->description('Create user payload')

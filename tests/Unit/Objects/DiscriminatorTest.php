@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Cortex\OpenApi\Objects\Discriminator;
 
+covers(Discriminator::class);
+
 it('emits a propertyName-only discriminator', function (): void {
     expect(Discriminator::create('petType')->toArray())->toBe([
         'propertyName' => 'petType',

@@ -1,0 +1,269 @@
+---
+title: Responses
+description: 'Document HTTP responses with Response, Header, Link, and named constructors'
+icon: 'file-down'
+---
+
+## Response
+
+`Response` describes a single HTTP status code outcome. Pass one or more responses to `Operation::responses()`.
+
+```php
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Reference;
+
+Operation::get()
+    ->operationId('users.show')
+    ->responses(
+        Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/User'))),
+        Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+    );
+```
+
+### Named Constructors
+
+Every common HTTP status code has a named constructor that pre-populates the standard description. Override it with `->description()`.
+
+```php
+Response::ok()                   // 200 OK
+Response::created()              // 201 Created
+Response::accepted()             // 202 Accepted
+Response::noContent()            // 204 No Content
+Response::badRequest()           // 400 Bad Request
+Response::unauthorized()         // 401 Unauthorized
+Response::forbidden()            // 403 Forbidden
+Response::notFound()             // 404 Not Found
+Response::conflict()             // 409 Conflict
+Response::unprocessable()        // 422 Unprocessable Entity
+Response::tooManyRequests()      // 429 Too Many Requests
+Response::internalServerError()  // 500 Internal Server Error
+```
+
+For any other code, use `Response::status()`:
+
+```php
+Response::status(206)  // 206 Partial Content
+Response::status(301)  // 301 Moved Permanently
+Response::status(418)  // 418 I'm a Teapot
+```
+
+### The Default Response
+
+`Response::default()` maps to the `"default"` key in the responses map, acting as a catch-all for any status code not explicitly listed:
+
+```php
+Operation::get()
+    ->responses(
+        Response::ok()->content(MediaType::json($successSchema)),
+        Response::default()
+            ->description('An unexpected error occurred')
+            ->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+    );
+```
+
+<Tip>
+Use `Response::default()` to cover all error codes with a single error schema rather than repeating the same error response for 400, 500, etc.
+</Tip>
+
+### Response Content
+
+Attach one or more `MediaType` objects to document the response body:
+
+```php
+use Cortex\OpenApi\Objects\MediaType;
+
+Response::ok()
+    ->description('The requested resource')
+    ->content(
+        MediaType::json(Reference::to('#/components/schemas/Article')),
+        MediaType::xml(Reference::to('#/components/schemas/Article')),
+    )
+```
+
+### Responses with No Body
+
+For responses that carry no body (e.g., 204 No Content, 301 redirects), omit `->content()` entirely:
+
+```php
+Response::noContent()   // 204 — body omitted
+
+Response::status(301)
+    ->description('Redirected')
+    ->headers([
+        'Location' => Header::create()
+            ->schema(Schema::string()->format('uri'))
+            ->description('The redirect target URL'),
+    ])
+```
+
+## Response Headers
+
+Use `->headers()` to document HTTP response headers. Pass an associative array of header name → `Header` or `Reference`:
+
+```php
+use Cortex\OpenApi\Objects\Header;
+use Cortex\JsonSchema\Schema;
+
+Response::ok()
+    ->content(MediaType::json($paginatedSchema))
+    ->headers([
+        'X-Total-Count' => Header::create()
+            ->schema(Schema::integer())
+            ->description('Total number of results across all pages'),
+        'X-Request-Id' => Header::create()
+            ->schema(Schema::string()->format('uuid'))
+            ->description('Echoed back from the request for tracing'),
+        'Link' => Header::create()
+            ->schema(Schema::string())
+            ->description('RFC 5988 pagination links (first, next, prev, last)'),
+    ])
+```
+
+### Header Object
+
+`Header` shares most fields with `Parameter` (minus `name` and `in`, which are implicit):
+
+```php
+Header::create()
+    ->schema(Schema::string())
+    ->description('...')
+    ->required()
+    ->deprecated()
+    ->example('some-value')
+    ->examples([
+        'uuid' => Example::create()->value('550e8400-e29b-41d4-a716-446655440000'),
+    ])
+```
+
+## Response Links
+
+`Link` objects describe how a response value can be used as input to a subsequent operation — useful for HATEOAS-style navigation and for tooling that auto-generates client workflows.
+
+```php
+use Cortex\OpenApi\Objects\Link;
+
+Response::created()
+    ->content(MediaType::json(Reference::to('#/components/schemas/Article')))
+    ->links([
+        'GetArticleById' => Link::create()
+            ->operationId('articles.show')
+            ->parameters(['articleId' => '$response.body#/id'])
+            ->description('Fetch the newly created article'),
+
+        'UpdateArticle' => Link::create()
+            ->operationId('articles.update')
+            ->parameters(['articleId' => '$response.body#/id']),
+    ])
+```
+
+### Link Fields
+
+| Method | Description |
+|--------|-------------|
+| `->operationId(string)` | Target operation by its `operationId` |
+| `->operationRef(string)` | Target operation by JSON pointer (alternative to `operationId`) |
+| `->parameters(array)` | Map of parameter name → runtime expression or static value |
+| `->requestBody(mixed)` | Runtime expression or value to use as request body |
+| `->description(string)` | Explanation of what the link does |
+| `->server(Server)` | Override the server for the linked operation |
+
+Runtime expressions follow the pattern `$request.body#/field` or `$response.header.Location`. A static value can also be supplied directly.
+
+## Reusable Responses
+
+Register common responses in `Components` to avoid repetition across operations:
+
+```php
+use Cortex\OpenApi\Objects\Components;
+
+$components = Components::create()
+    ->response('NotFound',
+        Response::notFound()->content(
+            MediaType::json(Reference::to('#/components/schemas/Error')),
+        ),
+    )
+    ->response('Unauthorized',
+        Response::unauthorized()->content(
+            MediaType::json(Reference::to('#/components/schemas/Error')),
+        ),
+    );
+
+// Reference from an operation
+Operation::get()
+    ->responses(
+        Response::ok()->content(MediaType::json($schema)),
+        Response::ref('#/components/responses/NotFound'),
+        Response::ref('#/components/responses/Unauthorized'),
+    );
+```
+
+## Inline Examples on Responses
+
+Attach examples directly to the `MediaType` in a response:
+
+```php
+use Cortex\OpenApi\Objects\Example;
+
+Response::ok()
+    ->content(
+        MediaType::json($userSchema)->examples([
+            'active-user' => Example::create()
+                ->summary('An active user')
+                ->value([
+                    'id'     => 1,
+                    'name'   => 'Jane Doe',
+                    'status' => 'active',
+                ]),
+            'inactive-user' => Example::create()
+                ->summary('An inactive user')
+                ->value([
+                    'id'     => 2,
+                    'name'   => 'John Smith',
+                    'status' => 'inactive',
+                ]),
+        ]),
+    )
+```
+
+## Complete Example
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Header;
+use Cortex\OpenApi\Objects\Link;
+use Cortex\OpenApi\Objects\Reference;
+use Cortex\OpenApi\Objects\Operation;
+
+$articleSchema = Schema::object()->properties(
+    Schema::integer('id')->required(),
+    Schema::string('title')->required(),
+    Schema::string('status')->enum(['draft', 'published'])->required(),
+);
+
+Operation::post()
+    ->operationId('articles.create')
+    ->responses(
+        Response::created()
+            ->description('Article successfully created')
+            ->headers([
+                'Location' => Header::create()
+                    ->schema(Schema::string()->format('uri'))
+                    ->description('URL of the newly created article'),
+            ])
+            ->content(MediaType::json($articleSchema))
+            ->links([
+                'GetArticle' => Link::create()
+                    ->operationId('articles.show')
+                    ->parameters(['slug' => '$response.body#/slug']),
+            ]),
+
+        Response::badRequest()
+            ->content(MediaType::json(Reference::to('#/components/schemas/ValidationError'))),
+
+        Response::unauthorized()
+            ->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+    );
+```

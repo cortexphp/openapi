@@ -1,0 +1,265 @@
+---
+title: Request Bodies
+description: 'Define request payloads with RequestBody, MediaType, and Encoding'
+icon: 'file-up'
+---
+
+## RequestBody
+
+`RequestBody` describes the payload an operation expects from the client. Attach it to an operation with `->requestBody()`.
+
+```php
+use Cortex\OpenApi\Objects\RequestBody;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\JsonSchema\Schema;
+
+Operation::post()
+    ->operationId('users.create')
+    ->requestBody(
+        RequestBody::create()
+            ->required(true)
+            ->description('The new user payload')
+            ->content(
+                MediaType::json(
+                    Schema::object()->properties(
+                        Schema::string('name')->required(),
+                        Schema::string('email')->format('email')->required(),
+                    ),
+                ),
+            ),
+    );
+```
+
+### required
+
+Mark the body required when clients must always send it. Optional bodies (the default) are used for partial updates or endpoints where the payload is situational.
+
+```php
+RequestBody::create()->required()         // required: true
+RequestBody::create()->required(false)    // required: false (default)
+```
+
+## MediaType
+
+`MediaType` pairs a content-type string with a schema. Named constructors cover every common MIME type.
+
+<CodeGroup>
+```php Named constructors
+MediaType::json($schema)         // application/json
+MediaType::xml($schema)          // application/xml
+MediaType::form($schema)         // application/x-www-form-urlencoded
+MediaType::multipart($schema)    // multipart/form-data
+MediaType::text($schema)         // text/plain
+MediaType::html($schema)         // text/html
+MediaType::octetStream($schema)  // application/octet-stream
+MediaType::of('image/png')       // any custom content type
+```
+
+```php Schema argument
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Reference;
+
+// JsonSchema object — most common
+MediaType::json(Schema::object()->properties(...))
+
+// $ref to a registered component
+MediaType::json(Reference::to('#/components/schemas/User'))
+
+// Raw PHP array — escape hatch for hand-crafted schemas
+MediaType::json(['type' => 'string', 'format' => 'binary'])
+
+// No schema — schema set separately via ->schema()
+MediaType::of('application/pdf')->schema(Schema::string()->format('binary'))
+```
+</CodeGroup>
+
+### Multiple Content Types
+
+A single `RequestBody` can declare multiple accepted formats. The client sends the `Content-Type` header to select one.
+
+```php
+RequestBody::create()
+    ->required(true)
+    ->content(
+        MediaType::json(Reference::to('#/components/schemas/Article')),
+        MediaType::xml(Reference::to('#/components/schemas/Article')),
+    )
+```
+
+### Inline Examples
+
+Attach a single inline example or a map of named examples to a `MediaType`:
+
+```php
+use Cortex\OpenApi\Objects\Example;
+
+// Single inline value (simple types, arrays, or objects)
+MediaType::json(Schema::object()->properties(
+    Schema::string('name')->required(),
+    Schema::string('email')->required(),
+))->example([
+    'name'  => 'Jane Doe',
+    'email' => 'jane@example.com',
+])
+
+// Named example objects with summaries and descriptions
+MediaType::json($userSchema)->examples([
+    'admin' => Example::create()
+        ->value(['name' => 'Admin', 'email' => 'admin@example.com'])
+        ->summary('An admin account'),
+    'regular' => Example::create()
+        ->value(['name' => 'User', 'email' => 'user@example.com'])
+        ->summary('A regular user account'),
+])
+```
+
+<Note>
+`example` and `examples` are mutually exclusive on a `MediaType`. Use `example` for a single representative value, `examples` when you want to show multiple named scenarios.
+</Note>
+
+## Multipart Encoding
+
+For `multipart/form-data` and `application/x-www-form-urlencoded` bodies, use `->encoding()` to control how individual fields are serialized.
+
+```php
+use Cortex\OpenApi\Objects\Encoding;
+use Cortex\OpenApi\Objects\Header;
+
+$uploadSchema = Schema::object()->properties(
+    Schema::string('title')->required(),
+    Schema::string('file')->format('binary')->required(),
+    Schema::array('tags')->items(Schema::string()),
+);
+
+MediaType::multipart($uploadSchema)->encoding([
+    'file' => Encoding::create()
+        ->contentType('image/png, image/jpeg')
+        ->headers([
+            'X-Custom-Header' => Header::create()
+                ->schema(Schema::string())
+                ->description('Custom per-part header'),
+        ]),
+    'tags' => Encoding::create()
+        ->style('form')
+        ->explode(),  // tags[]=php&tags[]=openapi
+])
+```
+
+### Encoding Fields
+
+| Method | Description |
+|--------|-------------|
+| `->contentType(string)` | Override MIME type for the part (default: field's schema type) |
+| `->headers(array)` | Custom HTTP headers on this part |
+| `->style(string)` | Serialization style for complex types |
+| `->explode(bool)` | Explode arrays into separate parts |
+| `->allowReserved(bool)` | Allow RFC3986 reserved characters unencoded |
+
+## File Uploads
+
+Binary file uploads use `format('binary')` on the field schema:
+
+<Tabs>
+<Tab title="Single file">
+  ```php
+  MediaType::multipart(
+      Schema::object()->properties(
+          Schema::string('file')->format('binary')->required(),
+      ),
+  )
+  ```
+</Tab>
+<Tab title="Multiple files">
+  ```php
+  // Array of binaries for multi-file upload
+  MediaType::multipart(
+      Schema::object()->properties(
+          Schema::array('files')->items(
+              Schema::string()->format('binary'),
+          )->required(),
+      ),
+  )
+  ```
+</Tab>
+<Tab title="Raw binary body">
+  ```php
+  // Entire body is the binary (no multipart envelope)
+  RequestBody::create()
+      ->required(true)
+      ->content(
+          MediaType::octetStream(Schema::string()->format('binary')),
+      )
+  ```
+</Tab>
+</Tabs>
+
+## Reusable Request Bodies
+
+Register common request bodies in `Components` and reference them from operations using `$ref`:
+
+```php
+use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\Objects\Reference;
+
+// Register
+$components = Components::create()
+    ->requestBody('CreateArticle',
+        RequestBody::create()
+            ->required(true)
+            ->content(MediaType::json(Reference::to('#/components/schemas/ArticleInput'))),
+    );
+
+// Reference from an operation
+Operation::post()
+    ->operationId('articles.create')
+    ->requestBody(RequestBody::ref('#/components/requestBodies/CreateArticle'));
+```
+
+## Complete Example
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\RequestBody;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Encoding;
+use Cortex\OpenApi\Objects\Example;
+use Cortex\OpenApi\Objects\Operation;
+
+Operation::post()
+    ->operationId('articles.create')
+    ->tags('articles')
+    ->summary('Create an article')
+    ->requestBody(
+        RequestBody::create()
+            ->required(true)
+            ->description('Article creation payload')
+            ->content(
+                MediaType::json(
+                    Schema::object()->properties(
+                        Schema::string('title')->minLength(3)->maxLength(120)->required(),
+                        Schema::string('body')->required(),
+                        Schema::string('status')->enum(['draft', 'published'])->default('draft'),
+                        Schema::array('tags')->items(Schema::string()),
+                    ),
+                )->examples([
+                    'draft' => Example::create()
+                        ->summary('A draft article')
+                        ->value([
+                            'title'  => 'Hello World',
+                            'body'   => 'My first article.',
+                            'status' => 'draft',
+                            'tags'   => ['intro'],
+                        ]),
+                    'published' => Example::create()
+                        ->summary('A published article')
+                        ->value([
+                            'title'  => 'Going Live',
+                            'body'   => 'This one is live.',
+                            'status' => 'published',
+                            'tags'   => ['release', 'news'],
+                        ]),
+                ]),
+            ),
+    );
+```

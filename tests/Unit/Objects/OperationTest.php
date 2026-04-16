@@ -12,6 +12,8 @@ use Cortex\OpenApi\Objects\RequestBody;
 use Cortex\OpenApi\Objects\ExternalDocs;
 use Cortex\OpenApi\Objects\SecurityRequirement;
 
+covers(Operation::class);
+
 it('knows its HTTP method', function (): void {
     expect(Operation::get()->getMethod())->toBe(HttpMethod::Get);
     expect(Operation::post()->getMethod())->toBe(HttpMethod::Post);

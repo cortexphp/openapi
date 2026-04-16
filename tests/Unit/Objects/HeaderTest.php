@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\Header;
 
+covers(Header::class);
+
 it('emits nothing by default', function (): void {
     expect(Header::create()->toArray())->toBe([]);
 });

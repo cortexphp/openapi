@@ -1,0 +1,297 @@
+---
+title: Paths & Operations
+description: 'Define API endpoints with PathItem, Operation, and Parameter'
+icon: 'route'
+---
+
+## Path Items
+
+A `PathItem` represents a single URL path and the HTTP operations available on it. Pass the path string to `PathItem::create()`, then attach operations with `->operations()`.
+
+```php
+use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Operation;
+
+PathItem::create('/articles')
+    ->operations(
+        Operation::get()->operationId('articles.list'),
+        Operation::post()->operationId('articles.create'),
+    );
+```
+
+The path is registered as the key in the document's `paths` map when you pass it to `OpenApi::paths()`.
+
+### Path-Level Metadata
+
+Add a `summary` and `description` to document the path itself, independent of its operations:
+
+```php
+PathItem::create('/articles/{id}')
+    ->summary('Operations on a single article')
+    ->description('Retrieve, update, or delete a specific article by its ID.')
+    ->operations(
+        Operation::get()->operationId('articles.show'),
+        Operation::patch()->operationId('articles.update'),
+        Operation::delete()->operationId('articles.destroy'),
+    );
+```
+
+### Path-Level Parameters
+
+Parameters that apply to all operations on a path can be declared once on the `PathItem`. Individual operations can add their own parameters on top.
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Parameter;
+
+PathItem::create('/users/{userId}/posts')
+    ->parameters(
+        Parameter::path('userId', Schema::integer()->format('int64'))
+            ->description('The user ID'),
+    )
+    ->operations(
+        // GET /users/{userId}/posts — inherits userId from PathItem
+        Operation::get()
+            ->operationId('users.posts.list')
+            ->parameters(
+                Parameter::query('page', Schema::integer()->minimum(1)),
+            ),
+    );
+```
+
+## Operations
+
+Each HTTP method on a path is an `Operation`. Named constructors match every method in the spec.
+
+<CodeGroup>
+```php Named constructors
+Operation::get()
+Operation::post()
+Operation::put()
+Operation::patch()
+Operation::delete()
+Operation::head()
+Operation::options()
+Operation::trace()
+```
+
+```php Common fields
+Operation::get()
+    ->operationId('articles.show')      // unique ID used by tooling and links
+    ->tags('articles', 'public')        // groups the operation in docs
+    ->summary('Get an article')         // short label
+    ->description('Returns a single article by its slug.')
+    ->deprecated()                      // marks operation as deprecated
+```
+</CodeGroup>
+
+### operationId
+
+`operationId` must be unique across the entire document. Tools use it for client SDK method naming and inter-operation links.
+
+```php
+Operation::get()->operationId('users.show')
+Operation::patch()->operationId('users.update')
+Operation::delete()->operationId('users.destroy')
+```
+
+### Deprecating Operations
+
+Mark an operation deprecated to signal it should no longer be used:
+
+```php
+Operation::get()
+    ->operationId('legacy.list')
+    ->deprecated()
+    ->description('Deprecated. Use /v2/items instead.')
+```
+
+## Parameters
+
+Parameters live in four locations: `path`, `query`, `header`, and `cookie`. Named constructors set the location automatically.
+
+### Path Parameters
+
+Path parameters are **always required** by the OpenAPI spec. The `required: true` field is automatically set.
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Parameter;
+
+Parameter::path('articleId', Schema::integer()->format('int64'))
+    ->description('The article ID')
+```
+
+<Warning>
+A path parameter must correspond to a `{placeholder}` in the path string. For example, `Parameter::path('articleId', ...)` requires a path like `/articles/{articleId}`.
+</Warning>
+
+### Query Parameters
+
+```php
+Parameter::query('page', Schema::integer()->minimum(1)->default(1))
+    ->description('Page number')
+
+Parameter::query('sort', Schema::string()->enum(['asc', 'desc'])->default('asc'))
+
+Parameter::query('tags', Schema::array()->items(Schema::string()))
+    ->description('Filter by tags')
+    ->explode()  // ?tags=php&tags=openapi (default for query arrays)
+```
+
+### Header Parameters
+
+```php
+Parameter::header('X-Request-Id', Schema::string()->format('uuid'))
+    ->description('Client-supplied request identifier for tracing')
+
+Parameter::header('Accept-Language', Schema::string()->default('en'))
+```
+
+### Cookie Parameters
+
+```php
+Parameter::cookie('session', Schema::string())
+    ->description('Session token')
+```
+
+### Required and Optional
+
+Query, header, and cookie parameters are optional by default. Mark them required explicitly:
+
+```php
+Parameter::query('api_key', Schema::string())
+    ->required()
+```
+
+### Deprecating Parameters
+
+```php
+Parameter::query('filter', Schema::string())
+    ->deprecated()
+    ->description('Deprecated. Use the `q` parameter instead.')
+```
+
+### Serialization Style
+
+Control how arrays and objects are serialized in query strings using `->style()` and `->explode()`:
+
+<Tabs>
+<Tab title="Form (default for query)">
+  ```php
+  // Default: ?color=blue&color=red (explode=true)
+  Parameter::query('color', Schema::array()->items(Schema::string()))
+      ->style('form')
+      ->explode()
+
+  // ?color=blue,red (explode=false)
+  Parameter::query('color', Schema::array()->items(Schema::string()))
+      ->style('form')
+      ->explode(false)
+  ```
+</Tab>
+<Tab title="Space / Pipe Delimited">
+  ```php
+  // ?color=blue%20red
+  Parameter::query('color', Schema::array()->items(Schema::string()))
+      ->style('spaceDelimited')
+
+  // ?color=blue|red
+  Parameter::query('color', Schema::array()->items(Schema::string()))
+      ->style('pipeDelimited')
+  ```
+</Tab>
+<Tab title="Deep Object">
+  ```php
+  // ?filter[status]=active&filter[type]=user
+  Parameter::query('filter', Schema::object()->properties(
+      Schema::string('status'),
+      Schema::string('type'),
+  ))->style('deepObject')
+  ```
+</Tab>
+<Tab title="Path Matrix / Label">
+  ```php
+  // ;color=blue (matrix)
+  Parameter::path('color', Schema::string())->style('matrix')
+
+  // .blue (label)
+  Parameter::path('color', Schema::string())->style('label')
+  ```
+</Tab>
+</Tabs>
+
+### Examples on Parameters
+
+Attach inline examples or named example objects to a parameter:
+
+```php
+use Cortex\OpenApi\Objects\Example;
+
+// Single inline example
+Parameter::query('status', Schema::string())
+    ->example('active')
+
+// Named examples
+Parameter::query('status', Schema::string())
+    ->examples([
+        'active'   => Example::create()->value('active')->summary('Active accounts only'),
+        'archived' => Example::create()->value('archived')->summary('Archived accounts only'),
+    ])
+```
+
+## Complete Path Example
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\PathItem;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Parameter;
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\RequestBody;
+use Cortex\OpenApi\Objects\Reference;
+use Cortex\OpenApi\Objects\ExternalDocs;
+
+PathItem::create('/articles/{slug}')
+    ->summary('Operations on a single article')
+    ->parameters(
+        Parameter::path('slug', Schema::string()->pattern('^[a-z0-9-]+$'))
+            ->description('The article slug'),
+    )
+    ->operations(
+        Operation::get()
+            ->operationId('articles.show')
+            ->tags('articles')
+            ->summary('Get an article')
+            ->externalDocs(ExternalDocs::create('https://docs.example.com/articles'))
+            ->responses(
+                Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/Article'))),
+                Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+            ),
+
+        Operation::patch()
+            ->operationId('articles.update')
+            ->tags('articles')
+            ->summary('Update an article')
+            ->requestBody(
+                RequestBody::create()
+                    ->required(true)
+                    ->content(MediaType::json(Reference::to('#/components/schemas/ArticleUpdate'))),
+            )
+            ->responses(
+                Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/Article'))),
+                Response::badRequest()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+            ),
+
+        Operation::delete()
+            ->operationId('articles.destroy')
+            ->tags('articles')
+            ->summary('Delete an article')
+            ->responses(
+                Response::noContent(),
+                Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+            ),
+    );
+```
