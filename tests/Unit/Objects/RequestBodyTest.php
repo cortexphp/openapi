@@ -60,3 +60,11 @@ it('supports ref() shortcut', function (): void {
         '$ref' => '#/components/requestBodies/Create',
     ]);
 });
+
+it('required() defaults to true', function (): void {
+    $requestBody = RequestBody::create()
+        ->required()
+        ->content(MediaType::json(Schema::string()));
+
+    expect($requestBody->toArray())->toMatchArray(['required' => true]);
+});

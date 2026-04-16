@@ -26,3 +26,11 @@ it('emits every field', function (): void {
         'wrapped' => true,
     ]);
 });
+
+it('attribute() defaults to true', function (): void {
+    expect(Xml::create()->attribute()->toArray())->toBe(['attribute' => true]);
+});
+
+it('wrapped() defaults to true', function (): void {
+    expect(Xml::create()->wrapped()->toArray())->toBe(['wrapped' => true]);
+});

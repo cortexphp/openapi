@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Encoding;
 use Cortex\OpenApi\Objects\Example;
 use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\Reference;
@@ -69,4 +70,29 @@ it('supports example and examples', function (): void {
             ],
         ],
     ]);
+});
+
+it('example appears before encoding in output', function (): void {
+    $mediaType = MediaType::json(Schema::string())
+        ->example('foo')
+        ->encoding(['photo' => Encoding::create()->contentType('image/png')]);
+
+    $keys = array_keys($mediaType->toArray());
+    expect(array_search('example', $keys))->toBeLessThan(array_search('encoding', $keys));
+});
+
+it('example appears at end when only schema present', function (): void {
+    $mediaType = MediaType::json(Schema::string())->example('foo');
+
+    expect($mediaType->toArray())->toBe([
+        'schema' => ['type' => 'string'],
+        'example' => 'foo',
+    ]);
+});
+
+it('emits encoding', function (): void {
+    $mediaType = MediaType::json(Schema::object())
+        ->encoding(['photo' => Encoding::create()->contentType('image/png')]);
+
+    expect($mediaType->toArray())->toHaveKey('encoding');
 });

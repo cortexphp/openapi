@@ -39,6 +39,21 @@ final class BuildsArraySerializableFixture implements Serializable
     }
 }
 
+final class BuildsArrayNoExtensionsFixture
+{
+    use BuildsArray;
+
+    /**
+     * @param array<string, mixed> $fields
+     *
+     * @return array<string, mixed>
+     */
+    public function assemble(array $fields): array
+    {
+        return $this->buildArray($fields);
+    }
+}
+
 it('drops null fields', function (): void {
     $out = (new BuildsArrayFixture())->assemble([
         'title' => 'X',
@@ -145,6 +160,16 @@ it('preserves explicit zero values', function (): void {
     expect($out)->toBe([
         'minimum' => 0,
     ]);
+});
+
+it('does not call getExtensions() on classes without HasExtensionsInterface', function (): void {
+    $fixture = new BuildsArrayNoExtensionsFixture();
+
+    // If the instanceof check were mutated to true, this would fatal-error
+    // because BuildsArrayNoExtensionsFixture has no getExtensions() method.
+    $out = $fixture->assemble(['title' => 'Test']);
+
+    expect($out)->toBe(['title' => 'Test']);
 });
 
 it('unwraps a Cortex JsonSchema stripping $schema and title', function (): void {

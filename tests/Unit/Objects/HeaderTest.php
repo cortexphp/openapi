@@ -37,3 +37,36 @@ it('supports deprecated and example', function (): void {
         'example' => 'abc123',
     ]);
 });
+
+it('required() defaults to true', function (): void {
+    expect(Header::create()->required()->toArray())->toBe(['required' => true]);
+});
+
+it('deprecated() defaults to true', function (): void {
+    expect(Header::create()->deprecated()->toArray())->toBe(['deprecated' => true]);
+});
+
+it('emits all optional fields when set', function (): void {
+    $header = Header::create()
+        ->allowEmptyValue(true)
+        ->style('simple')
+        ->explode(true)
+        ->allowReserved(true)
+        ->schema(Schema::string());
+
+    expect($header->toArray())->toBe([
+        'allowEmptyValue' => true,
+        'style' => 'simple',
+        'explode' => true,
+        'allowReserved' => true,
+        'schema' => ['type' => 'string'],
+    ]);
+});
+
+it('explode() defaults to true', function (): void {
+    expect(Header::create()->explode()->toArray())->toBe(['explode' => true]);
+});
+
+it('allowReserved() defaults to true', function (): void {
+    expect(Header::create()->allowReserved()->toArray())->toBe(['allowReserved' => true]);
+});

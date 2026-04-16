@@ -56,3 +56,28 @@ it('drops unset optional fields', function (): void {
         'version' => '1.0',
     ]);
 });
+
+it('contact emits all fields', function (): void {
+    $contact = Contact::create()
+        ->name('API Team')
+        ->url('https://example.com/support')
+        ->email('support@example.com');
+
+    expect($contact->toArray())->toBe([
+        'name' => 'API Team',
+        'url' => 'https://example.com/support',
+        'email' => 'support@example.com',
+    ]);
+});
+
+it('license emits identifier and url', function (): void {
+    $license = License::create('Apache 2.0')
+        ->identifier('Apache-2.0')
+        ->url('https://www.apache.org/licenses/LICENSE-2.0');
+
+    expect($license->toArray())->toBe([
+        'name' => 'Apache 2.0',
+        'identifier' => 'Apache-2.0',
+        'url' => 'https://www.apache.org/licenses/LICENSE-2.0',
+    ]);
+});

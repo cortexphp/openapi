@@ -74,3 +74,27 @@ it('rejects a document with a bad response status key', function (): void {
 
     expect(fn(): mixed => $openApi->validate())->toThrow(ValidationException::class);
 });
+
+it('validation exception message contains schema validation prefix', function (): void {
+    $openApi = OpenApi::create();
+
+    try {
+        $openApi->validate();
+        $this->fail('Expected ValidationException');
+    } catch (ValidationException $e) {
+        expect($e->getMessage())->toContain('OpenAPI document failed meta-schema validation:');
+    }
+});
+
+it('validation exception message contains json-encoded errors', function (): void {
+    $openApi = OpenApi::create();
+
+    try {
+        $openApi->validate();
+    } catch (ValidationException $e) {
+        // The message should contain both the prefix and JSON-encoded error details
+        expect($e->getMessage())->toStartWith('OpenAPI document failed meta-schema validation: ');
+        $jsonPart = substr($e->getMessage(), strlen('OpenAPI document failed meta-schema validation: '));
+        expect(json_decode($jsonPart, true))->not->toBeNull();
+    }
+});

@@ -38,3 +38,11 @@ it('emits headers and style flags', function (): void {
         'allowReserved' => true,
     ]);
 });
+
+it('explode() defaults to true', function (): void {
+    expect(Encoding::create()->explode()->toArray())->toBe(['explode' => true]);
+});
+
+it('allowReserved() defaults to true', function (): void {
+    expect(Encoding::create()->allowReserved()->toArray())->toBe(['allowReserved' => true]);
+});

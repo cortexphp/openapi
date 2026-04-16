@@ -86,3 +86,23 @@ it('supports ref() shortcut', function (): void {
         '$ref' => '#/components/parameters/PageSize',
     ]);
 });
+
+it('required() defaults to true', function (): void {
+    expect(Parameter::query('test', Schema::string())->required()->toArray())->toMatchArray(['required' => true]);
+});
+
+it('deprecated() defaults to true', function (): void {
+    expect(Parameter::query('test', Schema::string())->deprecated()->toArray())->toMatchArray(['deprecated' => true]);
+});
+
+it('explode() defaults to true', function (): void {
+    expect(Parameter::query('test', Schema::string())->explode()->toArray())->toMatchArray(['explode' => true]);
+});
+
+it('allowReserved() defaults to true', function (): void {
+    expect(Parameter::query('test', Schema::string())->allowReserved()->toArray())->toMatchArray(['allowReserved' => true]);
+});
+
+it('emits allowEmptyValue when set', function (): void {
+    expect(Parameter::query('test', Schema::string())->allowEmptyValue(true)->toArray())->toMatchArray(['allowEmptyValue' => true]);
+});
