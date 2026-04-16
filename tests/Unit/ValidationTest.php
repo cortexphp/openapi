@@ -101,3 +101,20 @@ it('validation exception message contains json-encoded errors', function (): voi
         expect(json_decode($jsonPart, true))->not->toBeNull();
     }
 });
+
+it('validation exception carries a structured errors array', function (): void {
+    $openApi = OpenApi::create();   // missing info — fails validation
+
+    try {
+        $openApi->validate();
+        expect(true)->toBeFalse('Expected ValidationException');
+    } catch (ValidationException $validationException) {
+        expect($validationException->errors())->toBeArray();
+        expect($validationException->errors())->not->toBeEmpty();
+    }
+});
+
+it('ValidationException constructed without errors returns empty array from errors()', function (): void {
+    $e = new ValidationException('Something went wrong');
+    expect($e->errors())->toBe([]);
+});

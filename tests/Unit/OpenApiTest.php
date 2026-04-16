@@ -8,9 +8,9 @@ use Cortex\OpenApi\Objects\Tag;
 use Cortex\OpenApi\Objects\Info;
 use Cortex\OpenApi\Objects\Server;
 use Cortex\OpenApi\Objects\PathItem;
-use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\Response;
 use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\Components;
 use Cortex\OpenApi\Enums\OpenApiVersion;
 use Cortex\OpenApi\Objects\ExternalDocs;
@@ -143,7 +143,9 @@ it('path() adds a PathItem or Reference by explicit pattern', function (): void 
     $arr = $openApi->toArray();
     expect($arr['paths'])->toHaveKey('/users');
     expect($arr['paths'])->toHaveKey('/legacy');
-    expect($arr['paths']['/legacy'])->toBe(['$ref' => '#/components/pathItems/LegacyUsers']);
+    expect($arr['paths']['/legacy'])->toBe([
+        '$ref' => '#/components/pathItems/LegacyUsers',
+    ]);
 });
 
 it('adds webhooks one at a time with webhook()', function (): void {
