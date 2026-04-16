@@ -96,38 +96,20 @@ final class PathItem implements Serializable, HasExtensionsInterface
      */
     public function toArray(): array
     {
-        $output = [];
-
-        if ($this->summary !== null) {
-            $output['summary'] = $this->summary;
-        }
-
-        if ($this->description !== null) {
-            $output['description'] = $this->description;
-        }
+        $fields = [
+            'summary' => $this->summary,
+            'description' => $this->description,
+        ];
 
         foreach ($this->operations as $method => $operation) {
-            $output[$method] = $operation->toArray();
+            $fields[$method] = $operation;
         }
 
-        if ($this->parameters !== []) {
-            $output['parameters'] = array_map(
-                fn(Parameter|Reference $parameter): array => $parameter->toArray(),
-                $this->parameters,
-            );
-        }
+        $fields['parameters'] = $this->parameters;
+        $fields['servers'] = $this->servers;
 
-        if ($this->servers !== []) {
-            $output['servers'] = array_map(
-                fn(Server $server): array => $server->toArray(),
-                $this->servers,
-            );
-        }
-
-        foreach ($this->getExtensions() as $key => $value) {
-            $output[$key] = $value;
-        }
-
-        return $output;
+        // Operations are always emitted even when the underlying Operation has no
+        // fields (e.g. Operation::post() with nothing set should still render 'post' => []).
+        return $this->buildArray($fields, array_keys($this->operations));
     }
 }

@@ -76,35 +76,11 @@ final class Example implements Serializable, HasExtensionsInterface
      */
     public function toArray(): array
     {
-        $output = $this->buildArray([
+        return $this->buildArray([
             'summary' => $this->summary,
             'description' => $this->description,
+            'value' => $this->value,
             'externalValue' => $this->externalValue,
-        ]);
-
-        if ($this->hasValue) {
-            // Inserted after buildArray so null literal values can be emitted.
-            $output = [
-                'value' => $this->value,
-            ] + $output;
-            // Restore conventional key order: summary, description, value, externalValue.
-            $ordered = [];
-
-            foreach (['summary', 'description', 'value', 'externalValue'] as $key) {
-                if (array_key_exists($key, $output)) {
-                    $ordered[$key] = $output[$key];
-                }
-            }
-
-            foreach ($output as $k => $v) {
-                if (! array_key_exists($k, $ordered)) {
-                    $ordered[$k] = $v;
-                }
-            }
-
-            return $ordered;
-        }
-
-        return $output;
+        ], $this->hasValue ? ['value'] : []);
     }
 }

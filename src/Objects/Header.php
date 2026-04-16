@@ -151,7 +151,7 @@ final class Header implements Serializable, HasExtensionsInterface
      */
     public function toArray(): array
     {
-        $output = $this->buildArray([
+        return $this->buildArray([
             'description' => $this->description,
             'required' => $this->required,
             'deprecated' => $this->deprecated,
@@ -162,12 +162,7 @@ final class Header implements Serializable, HasExtensionsInterface
             'schema' => $this->schema,
             'examples' => $this->examples,
             'content' => $this->content,
-        ]);
-
-        if ($this->hasExample) {
-            $output['example'] = $this->example;
-        }
-
-        return $output;
+            'example' => $this->example,
+        ], $this->hasExample ? ['example'] : []);
     }
 }

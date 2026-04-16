@@ -15,22 +15,31 @@ trait BuildsArray
      * and empty arrays, recursively unwrapping any Serializable children, and merging
      * any vendor extensions registered via HasExtensions.
      *
+     * Keys listed in $alwaysInclude are emitted as-is, even when their value is
+     * null or an empty array. This supports spec-allowed literal nulls (e.g.
+     * Example::value, Parameter::example) and spec-allowed empty placeholders
+     * (e.g. a PathItem operation key whose Operation has no fields yet).
+     *
      * @param array<string, mixed> $fields
+     * @param array<int, string>   $alwaysInclude
      *
      * @return array<string, mixed>
      */
-    protected function buildArray(array $fields): array
+    protected function buildArray(array $fields, array $alwaysInclude = []): array
     {
+        $forced = array_flip($alwaysInclude);
         $output = [];
 
         foreach ($fields as $key => $value) {
-            if ($value === null) {
+            $force = isset($forced[$key]);
+
+            if ($value === null && ! $force) {
                 continue;
             }
 
             $unwrapped = $this->unwrapValue($value);
 
-            if (is_array($unwrapped) && $unwrapped === []) {
+            if (is_array($unwrapped) && $unwrapped === [] && ! $force) {
                 continue;
             }
 

@@ -197,7 +197,7 @@ final class Parameter implements Serializable, HasExtensionsInterface
      */
     public function toArray(): array
     {
-        $output = $this->buildArray([
+        return $this->buildArray([
             'name' => $this->name,
             'in' => $this->in->value,
             'description' => $this->description,
@@ -207,33 +207,10 @@ final class Parameter implements Serializable, HasExtensionsInterface
             'style' => $this->style,
             'explode' => $this->explode,
             'allowReserved' => $this->allowReserved,
+            'example' => $this->example,
             'examples' => $this->examples,
             'schema' => $this->schema,
             'content' => $this->content,
-        ]);
-
-        if ($this->hasExample) {
-            // Insert example before examples/schema/content so conventional order is preserved,
-            // even when the example value is literal null (which buildArray would otherwise drop).
-            $reordered = [];
-
-            foreach ($output as $key => $value) {
-                if (! array_key_exists('example', $reordered)
-                    && in_array($key, ['examples', 'schema', 'content'], true)
-                ) {
-                    $reordered['example'] = $this->example;
-                }
-
-                $reordered[$key] = $value;
-            }
-
-            if (! array_key_exists('example', $reordered)) {
-                $reordered['example'] = $this->example;
-            }
-
-            return $reordered;
-        }
-
-        return $output;
+        ], $this->hasExample ? ['example'] : []);
     }
 }

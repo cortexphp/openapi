@@ -92,51 +92,13 @@ final class Link implements Serializable, HasExtensionsInterface
      */
     public function toArray(): array
     {
-        $output = $this->buildArray([
+        return $this->buildArray([
             'operationRef' => $this->operationRef,
             'operationId' => $this->operationId,
             'parameters' => $this->parameters,
+            'requestBody' => $this->requestBody,
             'description' => $this->description,
             'server' => $this->server,
-        ]);
-
-        if ($this->hasRequestBody) {
-            // Insert requestBody after parameters (or before description/server) so the
-            // conventional key order is preserved, even when the value is literal null.
-            $reordered = [];
-
-            foreach ($output as $key => $value) {
-                $reordered[$key] = $value;
-
-                if ($key === 'parameters' && ! array_key_exists('requestBody', $reordered)) {
-                    $reordered['requestBody'] = $this->requestBody;
-                }
-            }
-
-            if (! array_key_exists('requestBody', $reordered)) {
-                // No parameters present — insert requestBody before description/server.
-                $ordered = [];
-                $inserted = false;
-
-                foreach ($reordered as $key => $value) {
-                    if (! $inserted && in_array($key, ['description', 'server'], true)) {
-                        $ordered['requestBody'] = $this->requestBody;
-                        $inserted = true;
-                    }
-
-                    $ordered[$key] = $value;
-                }
-
-                if (! $inserted) {
-                    $ordered['requestBody'] = $this->requestBody;
-                }
-
-                return $ordered;
-            }
-
-            return $reordered;
-        }
-
-        return $output;
+        ], $this->hasRequestBody ? ['requestBody'] : []);
     }
 }

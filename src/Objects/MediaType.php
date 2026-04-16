@@ -146,34 +146,11 @@ final class MediaType implements Serializable, HasExtensionsInterface
      */
     public function toArray(): array
     {
-        $output = $this->buildArray([
+        return $this->buildArray([
             'schema' => $this->schema,
+            'example' => $this->example,
             'examples' => $this->examples,
             'encoding' => $this->encoding,
-        ]);
-
-        if ($this->hasExample) {
-            // Insert example before examples/encoding so conventional key order
-            // is preserved, even when the value is literal null.
-            $reordered = [];
-
-            foreach ($output as $key => $value) {
-                if (! array_key_exists('example', $reordered)
-                    && in_array($key, ['examples', 'encoding'], true)
-                ) {
-                    $reordered['example'] = $this->example;
-                }
-
-                $reordered[$key] = $value;
-            }
-
-            if (! array_key_exists('example', $reordered)) {
-                $reordered['example'] = $this->example;
-            }
-
-            return $reordered;
-        }
-
-        return $output;
+        ], $this->hasExample ? ['example'] : []);
     }
 }
