@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\Header;
 use Cortex\OpenApi\Objects\Encoding;
+use Cortex\OpenApi\Objects\Reference;
 
 covers(Encoding::class);
 
@@ -49,4 +50,12 @@ it('allowReserved() defaults to true', function (): void {
     expect(Encoding::create()->allowReserved()->toArray())->toBe([
         'allowReserved' => true,
     ]);
+});
+
+it('adds headers one at a time with header()', function (): void {
+    $encoding = Encoding::create()
+        ->header('X-Custom', Header::create()->schema(Schema::string()))
+        ->header('X-Ref', Reference::header('MyHeader'));
+
+    expect($encoding->toArray()['headers'])->toHaveKeys(['X-Custom', 'X-Ref']);
 });

@@ -191,6 +191,13 @@ final class Operation implements Serializable, HasExtensionsInterface
         return $this;
     }
 
+    public function callback(string $name, Callback|Reference $callback): self
+    {
+        $this->callbacks[$name] = $callback;
+
+        return $this;
+    }
+
     public function deprecated(?bool $deprecated = true): self
     {
         $this->deprecated = $deprecated;

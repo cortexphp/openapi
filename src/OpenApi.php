@@ -121,6 +121,13 @@ final class OpenApi implements Serializable, HasExtensionsInterface
         return $this;
     }
 
+    public function webhook(string $name, PathItem|Reference $pathItem): self
+    {
+        $this->webhooks[$name] = $pathItem;
+
+        return $this;
+    }
+
     public function components(?Components $components): self
     {
         $this->components = $components;

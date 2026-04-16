@@ -130,3 +130,23 @@ it('supports vendor extensions at the root', function (): void {
 
     expect($openApi->toArray()['x-internal'])->toBe(true);
 });
+
+it('adds webhooks one at a time with webhook()', function (): void {
+    $openApi = OpenApi::create()
+        ->info(Info::create()->title('x')->version('1'))
+        ->webhook('user.created', PathItem::create('/user.created')->operations(
+            Operation::post()->operationId('user.created'),
+        ))
+        ->webhook('user.deleted', PathItem::create('/user.deleted')->operations(
+            Operation::post()->operationId('user.deleted'),
+        ));
+
+    expect($openApi->toArray()['webhooks'])->toBe([
+        'user.created' => [
+            'post' => ['operationId' => 'user.created'],
+        ],
+        'user.deleted' => [
+            'post' => ['operationId' => 'user.deleted'],
+        ],
+    ]);
+});

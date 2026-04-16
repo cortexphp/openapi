@@ -38,6 +38,13 @@ final class Discriminator implements Serializable, HasExtensionsInterface
         return $this;
     }
 
+    public function map(string $discriminatorValue, string $schemaRef): self
+    {
+        $this->mapping[$discriminatorValue] = $schemaRef;
+
+        return $this;
+    }
+
     /**
      * @return array<string, mixed>
      */

@@ -84,3 +84,19 @@ it('supports ref() shortcut', function (): void {
         '$ref' => '#/components/responses/Unauthorized',
     ]);
 });
+
+it('adds headers one at a time with header()', function (): void {
+    $response = Response::ok()
+        ->header('X-RateLimit-Limit', Header::create()->schema(Schema::integer()))
+        ->header('X-RateLimit-Remaining', Header::create()->schema(Schema::integer()));
+
+    expect($response->toArray()['headers'])->toHaveKeys(['X-RateLimit-Limit', 'X-RateLimit-Remaining']);
+});
+
+it('adds links one at a time with link()', function (): void {
+    $response = Response::ok()
+        ->link('self', Link::create()->operationId('users.show'))
+        ->link('next', Link::ref('#/components/links/NextUser'));
+
+    expect($response->toArray()['links'])->toHaveKeys(['self', 'next']);
+});

@@ -61,6 +61,13 @@ final class OAuthFlow implements Serializable, HasExtensionsInterface
         return $this;
     }
 
+    public function scope(string $name, string $description): self
+    {
+        $this->scopes[$name] = $description;
+
+        return $this;
+    }
+
     /**
      * @return array<string, mixed>
      */

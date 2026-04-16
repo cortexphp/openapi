@@ -152,6 +152,13 @@ final class Response implements Serializable, HasExtensionsInterface
         return $this;
     }
 
+    public function header(string $name, Header|Reference $header): self
+    {
+        $this->headers[$name] = $header;
+
+        return $this;
+    }
+
     public function content(MediaType ...$content): self
     {
         $this->content = [];
@@ -169,6 +176,13 @@ final class Response implements Serializable, HasExtensionsInterface
     public function links(array $links): self
     {
         $this->links = $links;
+
+        return $this;
+    }
+
+    public function link(string $name, Link|Reference $link): self
+    {
+        $this->links[$name] = $link;
 
         return $this;
     }

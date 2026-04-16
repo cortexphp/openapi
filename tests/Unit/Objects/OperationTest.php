@@ -149,3 +149,13 @@ it('emits callbacks when set', function (): void {
 
     expect($operation->toArray())->toHaveKey('callbacks');
 });
+
+it('adds callbacks one at a time with callback()', function (): void {
+    $operation = Operation::post()
+        ->callback('onData', Callback::create()->expression('{$url}', PathItem::create('/hook')))
+        ->callback('onError', Callback::ref('#/components/callbacks/OnError'));
+
+    $arr = $operation->toArray();
+    expect($arr['callbacks'])->toHaveKey('onData');
+    expect($arr['callbacks'])->toHaveKey('onError');
+});

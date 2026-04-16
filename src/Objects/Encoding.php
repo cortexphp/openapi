@@ -49,6 +49,13 @@ final class Encoding implements Serializable, HasExtensionsInterface
         return $this;
     }
 
+    public function header(string $name, Header|Reference $header): self
+    {
+        $this->headers[$name] = $header;
+
+        return $this;
+    }
+
     public function style(?string $style): self
     {
         $this->style = $style;
