@@ -24,6 +24,56 @@ final readonly class Reference implements Serializable
         return new self($pointer, $summary, $description);
     }
 
+    public static function schema(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/schemas/' . $name, $summary, $description);
+    }
+
+    public static function response(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/responses/' . $name, $summary, $description);
+    }
+
+    public static function parameter(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/parameters/' . $name, $summary, $description);
+    }
+
+    public static function requestBody(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/requestBodies/' . $name, $summary, $description);
+    }
+
+    public static function header(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/headers/' . $name, $summary, $description);
+    }
+
+    public static function example(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/examples/' . $name, $summary, $description);
+    }
+
+    public static function link(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/links/' . $name, $summary, $description);
+    }
+
+    public static function callback(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/callbacks/' . $name, $summary, $description);
+    }
+
+    public static function securityScheme(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/securitySchemes/' . $name, $summary, $description);
+    }
+
+    public static function pathItem(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        return self::to('#/components/pathItems/' . $name, $summary, $description);
+    }
+
     /**
      * @return array<string, mixed>
      */
