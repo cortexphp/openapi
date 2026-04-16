@@ -127,18 +127,23 @@ it('emits servers when set', function (): void {
     ]);
 });
 
-it('skips Reference objects in responses()', function (): void {
+it('responses() accepts only Response objects', function (): void {
     $operation = Operation::get()->responses(
         Response::ok(),
-        Reference::to('#/components/responses/Error'),
+        Response::notFound(),
     );
 
-    expect($operation->toArray())->toBe([
-        'responses' => [
-            '200' => [
-                'description' => 'OK',
-            ],
-        ],
+    expect($operation->toArray()['responses'])->toHaveKeys(['200', '404']);
+});
+
+it('adds a response by explicit status key, accepting Response or Reference', function (): void {
+    $operation = Operation::get()
+        ->response('200', Response::ok())
+        ->response('404', Reference::response('NotFound'));
+
+    expect($operation->toArray()['responses'])->toBe([
+        '200' => ['description' => 'OK'],
+        '404' => ['$ref' => '#/components/responses/NotFound'],
     ]);
 });
 

@@ -155,18 +155,20 @@ final class Operation implements Serializable, HasExtensionsInterface
         return $this;
     }
 
-    public function responses(Response|Reference ...$responses): self
+    public function responses(Response ...$responses): self
     {
         $this->responses = [];
 
         foreach ($responses as $response) {
-            if ($response instanceof Reference) {
-                // References to response objects must be keyed by a user-supplied status; use ref() map directly instead.
-                continue;
-            }
-
             $this->responses[$response->getStatusCode()] = $response;
         }
+
+        return $this;
+    }
+
+    public function response(int|string $status, Response|Reference $response): self
+    {
+        $this->responses[(string) $status] = $response;
 
         return $this;
     }
