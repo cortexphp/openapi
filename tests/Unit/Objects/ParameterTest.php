@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Enums\Style;
 use Cortex\OpenApi\Objects\Parameter;
 
 covers(Parameter::class);
@@ -114,5 +115,15 @@ it('allowReserved() defaults to true', function (): void {
 it('emits allowEmptyValue when set', function (): void {
     expect(Parameter::query('test', Schema::string())->allowEmptyValue(true)->toArray())->toMatchArray([
         'allowEmptyValue' => true,
+    ]);
+});
+
+it('accepts a Style enum for style()', function (): void {
+    $parameter = Parameter::query('tags', Schema::array())
+        ->style(Style::Form)
+        ->explode(false);
+
+    expect($parameter->toArray())->toMatchArray([
+        'style' => 'form',
     ]);
 });

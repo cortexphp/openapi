@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cortex\OpenApi\Objects;
 
+use Cortex\OpenApi\Enums\Style;
 use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
@@ -86,9 +87,9 @@ final class Header implements Serializable, HasExtensionsInterface
         return $this;
     }
 
-    public function style(?string $style): self
+    public function style(Style|string|null $style): self
     {
-        $this->style = $style;
+        $this->style = $style instanceof Style ? $style->value : $style;
 
         return $this;
     }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Enums\Style;
 use Cortex\OpenApi\Objects\Header;
 
 covers(Header::class);
@@ -78,5 +79,13 @@ it('explode() defaults to true', function (): void {
 it('allowReserved() defaults to true', function (): void {
     expect(Header::create()->allowReserved()->toArray())->toBe([
         'allowReserved' => true,
+    ]);
+});
+
+it('accepts a Style enum for style()', function (): void {
+    $header = Header::create()->style(Style::Simple);
+
+    expect($header->toArray())->toBe([
+        'style' => 'simple',
     ]);
 });

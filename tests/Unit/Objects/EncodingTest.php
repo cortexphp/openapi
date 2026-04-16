@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Enums\Style;
 use Cortex\OpenApi\Objects\Header;
 use Cortex\OpenApi\Objects\Encoding;
 use Cortex\OpenApi\Objects\Reference;
@@ -58,4 +59,12 @@ it('adds headers one at a time with header()', function (): void {
         ->header('X-Ref', Reference::header('MyHeader'));
 
     expect($encoding->toArray()['headers'])->toHaveKeys(['X-Custom', 'X-Ref']);
+});
+
+it('accepts a Style enum for style()', function (): void {
+    $encoding = Encoding::create()->style(Style::Form);
+
+    expect($encoding->toArray())->toBe([
+        'style' => 'form',
+    ]);
 });
