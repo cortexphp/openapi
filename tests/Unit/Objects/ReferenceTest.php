@@ -6,22 +6,22 @@ use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Contracts\Serializable;
 
 it('builds a basic $ref array', function (): void {
-    $ref = Reference::to('#/components/schemas/User');
+    $reference = Reference::to('#/components/schemas/User');
 
-    expect($ref)->toBeInstanceOf(Serializable::class);
-    expect($ref->toArray())->toBe([
+    expect($reference)->toBeInstanceOf(Serializable::class);
+    expect($reference->toArray())->toBe([
         '$ref' => '#/components/schemas/User',
     ]);
 });
 
 it('includes summary and description when provided', function (): void {
-    $ref = Reference::to(
+    $reference = Reference::to(
         '#/components/responses/NotFound',
         summary: 'Not found',
         description: 'The resource was not found',
     );
 
-    expect($ref->toArray())->toBe([
+    expect($reference->toArray())->toBe([
         '$ref' => '#/components/responses/NotFound',
         'summary' => 'Not found',
         'description' => 'The resource was not found',
@@ -29,9 +29,9 @@ it('includes summary and description when provided', function (): void {
 });
 
 it('omits summary and description when null', function (): void {
-    $ref = Reference::to('#/components/schemas/User', summary: null, description: null);
+    $reference = Reference::to('#/components/schemas/User');
 
-    expect($ref->toArray())->toBe([
+    expect($reference->toArray())->toBe([
         '$ref' => '#/components/schemas/User',
     ]);
 });

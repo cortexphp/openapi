@@ -12,12 +12,18 @@ it('emits every field when set', function (): void {
     $example = Example::create()
         ->summary('Sample user')
         ->description('A representative user')
-        ->value(['id' => 1, 'name' => 'Ada']);
+        ->value([
+            'id' => 1,
+            'name' => 'Ada',
+        ]);
 
     expect($example->toArray())->toBe([
         'summary' => 'Sample user',
         'description' => 'A representative user',
-        'value' => ['id' => 1, 'name' => 'Ada'],
+        'value' => [
+            'id' => 1,
+            'name' => 'Ada',
+        ],
     ]);
 });
 
@@ -32,7 +38,9 @@ it('emits externalValue when set', function (): void {
 it('clears a value when explicitly cleared', function (): void {
     $example = Example::create()->value('a');
 
-    expect($example->toArray())->toBe(['value' => 'a']);
+    expect($example->toArray())->toBe([
+        'value' => 'a',
+    ]);
 
     $example->clearValue();
 

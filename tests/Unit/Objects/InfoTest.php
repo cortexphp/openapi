@@ -31,8 +31,12 @@ it('emits every optional field when set', function (): void {
         'summary' => 'Short summary',
         'description' => 'Long description',
         'termsOfService' => 'https://example.com/terms',
-        'contact' => ['name' => 'API Team'],
-        'license' => ['name' => 'MIT'],
+        'contact' => [
+            'name' => 'API Team',
+        ],
+        'license' => [
+            'name' => 'MIT',
+        ],
         'version' => '1.2.3',
         'x-audience' => 'public',
     ]);

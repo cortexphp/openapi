@@ -6,7 +6,9 @@ use Cortex\OpenApi\Objects\Tag;
 use Cortex\OpenApi\Objects\ExternalDocs;
 
 it('emits only name by default', function (): void {
-    expect(Tag::create('Users')->toArray())->toBe(['name' => 'Users']);
+    expect(Tag::create('Users')->toArray())->toBe([
+        'name' => 'Users',
+    ]);
 });
 
 it('emits description and external docs', function (): void {
@@ -17,6 +19,8 @@ it('emits description and external docs', function (): void {
     expect($tag->toArray())->toBe([
         'name' => 'Users',
         'description' => 'User endpoints',
-        'externalDocs' => ['url' => 'https://example.com/docs/users'],
+        'externalDocs' => [
+            'url' => 'https://example.com/docs/users',
+        ],
     ]);
 });

@@ -18,7 +18,10 @@ it('emits a schema-based header', function (): void {
     expect($header->toArray())->toBe([
         'description' => 'Rate limit remaining',
         'required' => true,
-        'schema' => ['type' => 'integer', 'minimum' => 0],
+        'schema' => [
+            'type' => 'integer',
+            'minimum' => 0,
+        ],
     ]);
 });
 

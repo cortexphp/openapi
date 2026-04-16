@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Enums\HttpMethod;
-use Cortex\OpenApi\Objects\Parameter;
-use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Parameter;
 use Cortex\OpenApi\Objects\RequestBody;
 use Cortex\OpenApi\Objects\ExternalDocs;
 use Cortex\OpenApi\Objects\SecurityRequirement;
@@ -28,14 +28,14 @@ it('emits nothing by default', function (): void {
 });
 
 it('emits tags/summary/description/operationId/deprecated', function (): void {
-    $op = Operation::post()
+    $operation = Operation::post()
         ->tags('Users', 'Admin')
         ->summary('Create user')
         ->description('Creates a new user')
         ->operationId('users.create')
         ->deprecated(true);
 
-    expect($op->toArray())->toBe([
+    expect($operation->toArray())->toBe([
         'tags' => ['Users', 'Admin'],
         'summary' => 'Create user',
         'description' => 'Creates a new user',
@@ -45,7 +45,7 @@ it('emits tags/summary/description/operationId/deprecated', function (): void {
 });
 
 it('emits parameters, requestBody, and responses', function (): void {
-    $op = Operation::post()
+    $operation = Operation::post()
         ->parameters(Parameter::query('dry_run', Schema::boolean()))
         ->requestBody(RequestBody::create()->content(MediaType::json(Schema::string())))
         ->responses(
@@ -53,38 +53,54 @@ it('emits parameters, requestBody, and responses', function (): void {
             Response::badRequest(),
         );
 
-    expect($op->toArray())->toBe([
+    expect($operation->toArray())->toBe([
         'parameters' => [
             [
                 'name' => 'dry_run',
                 'in' => 'query',
-                'schema' => ['type' => 'boolean'],
+                'schema' => [
+                    'type' => 'boolean',
+                ],
             ],
         ],
         'requestBody' => [
             'content' => [
-                'application/json' => ['schema' => ['type' => 'string']],
+                'application/json' => [
+                    'schema' => [
+                        'type' => 'string',
+                    ],
+                ],
             ],
         ],
         'responses' => [
             '201' => [
                 'description' => 'Created',
                 'content' => [
-                    'application/json' => ['schema' => ['type' => 'string']],
+                    'application/json' => [
+                        'schema' => [
+                            'type' => 'string',
+                        ],
+                    ],
                 ],
             ],
-            '400' => ['description' => 'Bad Request'],
+            '400' => [
+                'description' => 'Bad Request',
+            ],
         ],
     ]);
 });
 
 it('emits externalDocs, servers, and security', function (): void {
-    $op = Operation::get()
+    $operation = Operation::get()
         ->externalDocs(ExternalDocs::create('https://example.com'))
         ->security(SecurityRequirement::create('oauth2', ['read']));
 
-    expect($op->toArray())->toBe([
-        'externalDocs' => ['url' => 'https://example.com'],
-        'security' => [['oauth2' => ['read']]],
+    expect($operation->toArray())->toBe([
+        'externalDocs' => [
+            'url' => 'https://example.com',
+        ],
+        'security' => [[
+            'oauth2' => ['read'],
+        ]],
     ]);
 });

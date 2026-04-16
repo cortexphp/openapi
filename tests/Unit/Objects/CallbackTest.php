@@ -16,7 +16,9 @@ it('emits a map of expression to PathItem', function (): void {
 
     expect($callback->toArray())->toBe([
         '{$request.body#/callbackUrl}' => [
-            'post' => ['operationId' => 'callback.receive'],
+            'post' => [
+                'operationId' => 'callback.receive',
+            ],
         ],
     ]);
 });
@@ -28,7 +30,9 @@ it('supports multiple expressions', function (): void {
 
     expect($callback->toArray())->toBe([
         'a' => [],
-        'b' => ['summary' => 'B'],
+        'b' => [
+            'summary' => 'B',
+        ],
     ]);
 });
 

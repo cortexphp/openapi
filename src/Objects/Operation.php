@@ -57,7 +57,7 @@ final class Operation implements Serializable
     private array $servers = [];
 
     private function __construct(
-        private readonly HttpMethod $method,
+        private readonly HttpMethod $httpMethod,
     ) {}
 
     public static function get(): self
@@ -102,7 +102,7 @@ final class Operation implements Serializable
 
     public function getMethod(): HttpMethod
     {
-        return $this->method;
+        return $this->httpMethod;
     }
 
     public function tags(string ...$tags): self

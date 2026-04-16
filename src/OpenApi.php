@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Cortex\OpenApi;
 
-use JsonException;
 use Throwable;
+use JsonException;
 use RuntimeException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;
-use Symfony\Component\Yaml\Yaml;
 use Cortex\OpenApi\Objects\Tag;
 use Cortex\OpenApi\Objects\Info;
+use Symfony\Component\Yaml\Yaml;
 use Cortex\OpenApi\Objects\Server;
-use Cortex\OpenApi\Enums\OpenApiVersion;
 use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\Components;
-use Cortex\OpenApi\Objects\ExternalDocs;
 use Cortex\OpenApi\Concerns\BuildsArray;
+use Cortex\OpenApi\Enums\OpenApiVersion;
+use Cortex\OpenApi\Objects\ExternalDocs;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
 use Opis\JsonSchema\Errors\ErrorFormatter;
@@ -64,17 +64,17 @@ final class OpenApi implements Serializable
     private ?ExternalDocs $externalDocs = null;
 
     private function __construct(
-        private readonly OpenApiVersion $version,
+        private readonly OpenApiVersion $openApiVersion,
     ) {}
 
-    public static function create(?OpenApiVersion $version = null): self
+    public static function create(?OpenApiVersion $openApiVersion = null): self
     {
-        return new self($version ?? OpenApiVersion::default());
+        return new self($openApiVersion ?? OpenApiVersion::default());
     }
 
     public function getVersion(): OpenApiVersion
     {
-        return $this->version;
+        return $this->openApiVersion;
     }
 
     public function info(Info $info): self
@@ -102,8 +102,8 @@ final class OpenApi implements Serializable
     {
         $this->paths = [];
 
-        foreach ($paths as $pathItem) {
-            $this->paths[$pathItem->getPath()] = $pathItem;
+        foreach ($paths as $path) {
+            $this->paths[$path->getPath()] = $path;
         }
 
         return $this;
@@ -159,7 +159,7 @@ final class OpenApi implements Serializable
         }
 
         return $this->buildArray([
-            'openapi' => $this->version->value,
+            'openapi' => $this->openApiVersion->value,
             'info' => $this->info,
             'jsonSchemaDialect' => $this->jsonSchemaDialect,
             'servers' => $this->servers,
@@ -176,8 +176,12 @@ final class OpenApi implements Serializable
     {
         try {
             return json_encode($this->toArray(), $flags | JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            throw new RuntimeException('Failed to encode OpenAPI document as JSON: ' . $e->getMessage(), previous: $e);
+        } catch (JsonException $jsonException) {
+            throw new RuntimeException(
+                'Failed to encode OpenAPI document as JSON: ' . $jsonException->getMessage(),
+                $jsonException->getCode(),
+                previous: $jsonException,
+            );
         }
     }
 
@@ -203,12 +207,12 @@ final class OpenApi implements Serializable
      */
     public function validate(): void
     {
-        $metaPath = __DIR__ . '/../resources/schemas/' . $this->version->value . '.json';
+        $metaPath = __DIR__ . '/../resources/schemas/' . $this->openApiVersion->value . '.json';
 
         if (! is_file($metaPath)) {
             throw new ValidationException(sprintf(
                 'OpenAPI meta-schema not found for version %s at %s.',
-                $this->version->value,
+                $this->openApiVersion->value,
                 $metaPath,
             ));
         }
@@ -244,13 +248,14 @@ final class OpenApi implements Serializable
                 Helper::toJSON($this->toArray()),
                 $metaSchema,
             );
-        } catch (Throwable $e) {
-            throw new ValidationException($e->getMessage(), previous: $e);
+        } catch (Throwable $throwable) {
+            throw new ValidationException($throwable->getMessage(), $throwable->getCode(), previous: $throwable);
         }
 
         if ($result->hasError()) {
             $error = $result->error();
             $formatted = (new ErrorFormatter())->format($error);
+
             throw new ValidationException(
                 'OpenAPI document failed meta-schema validation: ' . json_encode($formatted, JSON_UNESCAPED_SLASHES),
             );

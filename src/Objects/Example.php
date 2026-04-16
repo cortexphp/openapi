@@ -83,7 +83,9 @@ final class Example implements Serializable
 
         if ($this->hasValue) {
             // Inserted after buildArray so null literal values can be emitted.
-            $output = ['value' => $this->value] + $output;
+            $output = [
+                'value' => $this->value,
+            ] + $output;
             // Restore conventional key order: summary, description, value, externalValue.
             $ordered = [];
 

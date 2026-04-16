@@ -14,6 +14,7 @@ final class BuildsArrayFixture
 
     /**
      * @param array<string, mixed> $fields
+     *
      * @return array<string, mixed>
      */
     public function assemble(array $fields): array
@@ -29,7 +30,9 @@ final class BuildsArraySerializableFixture implements Serializable
      */
     public function toArray(): array
     {
-        return ['a' => 1];
+        return [
+            'a' => 1,
+        ];
     }
 }
 
@@ -39,7 +42,9 @@ it('drops null fields', function (): void {
         'version' => null,
     ]);
 
-    expect($out)->toBe(['title' => 'X']);
+    expect($out)->toBe([
+        'title' => 'X',
+    ]);
 });
 
 it('drops empty arrays', function (): void {
@@ -48,7 +53,9 @@ it('drops empty arrays', function (): void {
         'tags' => [],
     ]);
 
-    expect($out)->toBe(['title' => 'X']);
+    expect($out)->toBe([
+        'title' => 'X',
+    ]);
 });
 
 it('unwraps a Serializable child', function (): void {
@@ -56,7 +63,11 @@ it('unwraps a Serializable child', function (): void {
         'info' => new BuildsArraySerializableFixture(),
     ]);
 
-    expect($out)->toBe(['info' => ['a' => 1]]);
+    expect($out)->toBe([
+        'info' => [
+            'a' => 1,
+        ],
+    ]);
 });
 
 it('unwraps a list of Serializable children preserving list semantics', function (): void {
@@ -69,8 +80,12 @@ it('unwraps a list of Serializable children preserving list semantics', function
 
     expect($out)->toBe([
         'tags' => [
-            ['a' => 1],
-            ['a' => 1],
+            [
+                'a' => 1,
+            ],
+            [
+                'a' => 1,
+            ],
         ],
     ]);
 });
@@ -85,8 +100,12 @@ it('unwraps an associative array of Serializable children preserving keys', func
 
     expect($out)->toBe([
         'paths' => [
-            '/users' => ['a' => 1],
-            '/pets' => ['a' => 1],
+            '/users' => [
+                'a' => 1,
+            ],
+            '/pets' => [
+                'a' => 1,
+            ],
         ],
     ]);
 });
@@ -95,7 +114,9 @@ it('merges vendor extensions into the output', function (): void {
     $fixture = new BuildsArrayFixture();
     $fixture->x('foo', 'bar');
 
-    $out = $fixture->assemble(['title' => 'X']);
+    $out = $fixture->assemble([
+        'title' => 'X',
+    ]);
 
     expect($out)->toBe([
         'title' => 'X',
@@ -108,7 +129,9 @@ it('preserves explicit false values', function (): void {
         'deprecated' => false,
     ]);
 
-    expect($out)->toBe(['deprecated' => false]);
+    expect($out)->toBe([
+        'deprecated' => false,
+    ]);
 });
 
 it('preserves explicit zero values', function (): void {
@@ -116,18 +139,22 @@ it('preserves explicit zero values', function (): void {
         'minimum' => 0,
     ]);
 
-    expect($out)->toBe(['minimum' => 0]);
+    expect($out)->toBe([
+        'minimum' => 0,
+    ]);
 });
 
 it('unwraps a Cortex JsonSchema stripping $schema and title', function (): void {
-    $schema = Schema::string('IgnoredTitle')->minLength(2);
+    $stringSchema = Schema::string('IgnoredTitle')->minLength(2);
 
     // Reference: stand-alone toArray() would include both $schema URI and title.
-    $standalone = $schema->toArray();
+    $standalone = $stringSchema->toArray();
     expect($standalone)->toHaveKey('$schema');
     expect($standalone)->toHaveKey('title', 'IgnoredTitle');
 
-    $out = (new BuildsArrayFixture())->assemble(['schema' => $schema]);
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => $stringSchema,
+    ]);
 
     expect($out)->toBe([
         'schema' => [

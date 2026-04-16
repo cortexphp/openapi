@@ -26,30 +26,30 @@ final class OAuthFlows implements Serializable
         return new self();
     }
 
-    public function implicit(?OAuthFlow $flow): self
+    public function implicit(?OAuthFlow $oAuthFlow): self
     {
-        $this->implicit = $flow;
+        $this->implicit = $oAuthFlow;
 
         return $this;
     }
 
-    public function password(?OAuthFlow $flow): self
+    public function password(?OAuthFlow $oAuthFlow): self
     {
-        $this->password = $flow;
+        $this->password = $oAuthFlow;
 
         return $this;
     }
 
-    public function clientCredentials(?OAuthFlow $flow): self
+    public function clientCredentials(?OAuthFlow $oAuthFlow): self
     {
-        $this->clientCredentials = $flow;
+        $this->clientCredentials = $oAuthFlow;
 
         return $this;
     }
 
-    public function authorizationCode(?OAuthFlow $flow): self
+    public function authorizationCode(?OAuthFlow $oAuthFlow): self
     {
-        $this->authorizationCode = $flow;
+        $this->authorizationCode = $oAuthFlow;
 
         return $this;
     }

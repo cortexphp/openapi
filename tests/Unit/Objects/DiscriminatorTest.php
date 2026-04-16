@@ -11,12 +11,12 @@ it('emits a propertyName-only discriminator', function (): void {
 });
 
 it('emits a mapping', function (): void {
-    $d = Discriminator::create('petType')->mapping([
+    $discriminator = Discriminator::create('petType')->mapping([
         'dog' => '#/components/schemas/Dog',
         'cat' => '#/components/schemas/Cat',
     ]);
 
-    expect($d->toArray())->toBe([
+    expect($discriminator->toArray())->toBe([
         'propertyName' => 'petType',
         'mapping' => [
             'dog' => '#/components/schemas/Dog',

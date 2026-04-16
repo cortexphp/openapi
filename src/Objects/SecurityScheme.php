@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Cortex\OpenApi\Objects;
 
 use Cortex\OpenApi\Enums\In;
-use Cortex\OpenApi\Enums\SecuritySchemeType;
 use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
+use Cortex\OpenApi\Enums\SecuritySchemeType;
 
 final class SecurityScheme implements Serializable
 {
@@ -25,12 +25,12 @@ final class SecurityScheme implements Serializable
 
     private ?string $bearerFormat = null;
 
-    private ?OAuthFlows $flows = null;
+    private ?OAuthFlows $oAuthFlows = null;
 
     private ?string $openIdConnectUrl = null;
 
     private function __construct(
-        private readonly SecuritySchemeType $type,
+        private readonly SecuritySchemeType $securitySchemeType,
     ) {}
 
     public static function apiKey(string $name, In $in): self
@@ -50,10 +50,10 @@ final class SecurityScheme implements Serializable
         return $instance;
     }
 
-    public static function oauth2(?OAuthFlows $flows = null): self
+    public static function oauth2(?OAuthFlows $oAuthFlows = null): self
     {
         $scheme = new self(SecuritySchemeType::OAuth2);
-        $scheme->flows = $flows;
+        $scheme->oAuthFlows = $oAuthFlows;
 
         return $scheme;
     }
@@ -78,7 +78,7 @@ final class SecurityScheme implements Serializable
 
     public function getType(): SecuritySchemeType
     {
-        return $this->type;
+        return $this->securitySchemeType;
     }
 
     public function description(?string $description): self
@@ -116,9 +116,9 @@ final class SecurityScheme implements Serializable
         return $this;
     }
 
-    public function flows(?OAuthFlows $flows): self
+    public function flows(?OAuthFlows $oAuthFlows): self
     {
-        $this->flows = $flows;
+        $this->oAuthFlows = $oAuthFlows;
 
         return $this;
     }
@@ -136,13 +136,13 @@ final class SecurityScheme implements Serializable
     public function toArray(): array
     {
         return $this->buildArray([
-            'type' => $this->type->value,
+            'type' => $this->securitySchemeType->value,
             'description' => $this->description,
             'name' => $this->name,
             'in' => $this->in?->value,
             'scheme' => $this->scheme,
             'bearerFormat' => $this->bearerFormat,
-            'flows' => $this->flows,
+            'flows' => $this->oAuthFlows,
             'openIdConnectUrl' => $this->openIdConnectUrl,
         ]);
     }

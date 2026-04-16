@@ -16,7 +16,7 @@ final class Response implements Serializable
     /**
      * Default description used by the named constructors when the user does not override it.
      */
-    private const DEFAULT_DESCRIPTIONS = [
+    private const array DEFAULT_DESCRIPTIONS = [
         '200' => 'OK',
         '201' => 'Created',
         '202' => 'Accepted',

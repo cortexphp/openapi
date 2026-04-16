@@ -14,11 +14,6 @@ final class MediaType implements Serializable
     use BuildsArray;
     use HasExtensions;
 
-    /**
-     * @var JsonSchema|array<string, mixed>|Reference|null
-     */
-    private JsonSchema|array|Reference|null $schema = null;
-
     private bool $hasExample = false;
 
     private mixed $example = null;
@@ -38,10 +33,8 @@ final class MediaType implements Serializable
      */
     private function __construct(
         private readonly string $contentType,
-        JsonSchema|array|Reference|null $schema = null,
-    ) {
-        $this->schema = $schema;
-    }
+        private JsonSchema|array|Reference|null $schema = null,
+    ) {}
 
     public static function of(string $contentType): self
     {

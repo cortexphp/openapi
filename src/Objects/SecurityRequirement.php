@@ -6,14 +6,14 @@ namespace Cortex\OpenApi\Objects;
 
 use Cortex\OpenApi\Contracts\Serializable;
 
-final class SecurityRequirement implements Serializable
+final readonly class SecurityRequirement implements Serializable
 {
     /**
      * @param array<int, string> $scopes
      */
     private function __construct(
-        private readonly ?string $scheme,
-        private readonly array $scopes,
+        private ?string $scheme,
+        private array $scopes,
     ) {}
 
     /**
@@ -41,6 +41,8 @@ final class SecurityRequirement implements Serializable
             return [];
         }
 
-        return [$this->scheme => $this->scopes];
+        return [
+            $this->scheme => $this->scopes,
+        ];
     }
 }

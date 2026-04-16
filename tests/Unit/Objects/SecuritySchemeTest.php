@@ -8,10 +8,10 @@ use Cortex\OpenApi\Objects\OAuthFlows;
 use Cortex\OpenApi\Objects\SecurityScheme;
 
 it('builds an apiKey scheme', function (): void {
-    $scheme = SecurityScheme::apiKey('X-API-Key', In::Header)
+    $securityScheme = SecurityScheme::apiKey('X-API-Key', In::Header)
         ->description('API key auth');
 
-    expect($scheme->toArray())->toBe([
+    expect($securityScheme->toArray())->toBe([
         'type' => 'apiKey',
         'description' => 'API key auth',
         'name' => 'X-API-Key',
@@ -20,9 +20,9 @@ it('builds an apiKey scheme', function (): void {
 });
 
 it('builds an http scheme', function (): void {
-    $scheme = SecurityScheme::http('bearer')->bearerFormat('JWT');
+    $securityScheme = SecurityScheme::http('bearer')->bearerFormat('JWT');
 
-    expect($scheme->toArray())->toBe([
+    expect($securityScheme->toArray())->toBe([
         'type' => 'http',
         'scheme' => 'bearer',
         'bearerFormat' => 'JWT',
@@ -30,31 +30,35 @@ it('builds an http scheme', function (): void {
 });
 
 it('builds an oauth2 scheme with flows', function (): void {
-    $scheme = SecurityScheme::oauth2(
+    $securityScheme = SecurityScheme::oauth2(
         OAuthFlows::create()->authorizationCode(
             OAuthFlow::create()
                 ->authorizationUrl('https://example.com/authorize')
                 ->tokenUrl('https://example.com/token')
-                ->scopes(['read' => 'Read access']),
+                ->scopes([
+                    'read' => 'Read access',
+                ]),
         ),
     );
 
-    expect($scheme->toArray())->toBe([
+    expect($securityScheme->toArray())->toBe([
         'type' => 'oauth2',
         'flows' => [
             'authorizationCode' => [
                 'authorizationUrl' => 'https://example.com/authorize',
                 'tokenUrl' => 'https://example.com/token',
-                'scopes' => ['read' => 'Read access'],
+                'scopes' => [
+                    'read' => 'Read access',
+                ],
             ],
         ],
     ]);
 });
 
 it('builds an openIdConnect scheme', function (): void {
-    $scheme = SecurityScheme::openIdConnect('https://example.com/.well-known/openid-configuration');
+    $securityScheme = SecurityScheme::openIdConnect('https://example.com/.well-known/openid-configuration');
 
-    expect($scheme->toArray())->toBe([
+    expect($securityScheme->toArray())->toBe([
         'type' => 'openIdConnect',
         'openIdConnectUrl' => 'https://example.com/.well-known/openid-configuration',
     ]);

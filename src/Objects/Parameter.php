@@ -29,11 +29,6 @@ final class Parameter implements Serializable
 
     private ?bool $allowReserved = null;
 
-    /**
-     * @var JsonSchema|array<string, mixed>|Reference|null
-     */
-    private JsonSchema|array|Reference|null $schema = null;
-
     private bool $hasExample = false;
 
     private mixed $example = null;
@@ -54,10 +49,8 @@ final class Parameter implements Serializable
     private function __construct(
         private readonly string $name,
         private readonly In $in,
-        JsonSchema|array|Reference|null $schema = null,
+        private JsonSchema|array|Reference|null $schema = null,
     ) {
-        $this->schema = $schema;
-
         if ($in === In::Path) {
             $this->required = true;
         }

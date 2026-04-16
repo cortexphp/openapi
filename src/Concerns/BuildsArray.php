@@ -15,6 +15,7 @@ trait BuildsArray
      * any vendor extensions registered via HasExtensions.
      *
      * @param array<string, mixed> $fields
+     *
      * @return array<string, mixed>
      */
     protected function buildArray(array $fields): array

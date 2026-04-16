@@ -25,7 +25,11 @@ it('emits headers and style flags', function (): void {
     expect($encoding->toArray())->toBe([
         'contentType' => 'application/xml',
         'headers' => [
-            'X-Custom' => ['schema' => ['type' => 'string']],
+            'X-Custom' => [
+                'schema' => [
+                    'type' => 'string',
+                ],
+            ],
         ],
         'style' => 'form',
         'explode' => false,

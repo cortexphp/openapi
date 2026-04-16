@@ -111,14 +111,14 @@ final class PathItem implements Serializable
 
         if ($this->parameters !== []) {
             $output['parameters'] = array_map(
-                fn (Parameter|Reference $parameter): array => $parameter->toArray(),
+                fn(Parameter|Reference $parameter): array => $parameter->toArray(),
                 $this->parameters,
             );
         }
 
         if ($this->servers !== []) {
             $output['servers'] = array_map(
-                fn (Server $server): array => $server->toArray(),
+                fn(Server $server): array => $server->toArray(),
                 $this->servers,
             );
         }

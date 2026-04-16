@@ -12,26 +12,36 @@ it('emits nothing when empty', function (): void {
 it('emits operationId-based link', function (): void {
     $link = Link::create()
         ->operationId('users.show')
-        ->parameters(['id' => '$response.body#/id'])
+        ->parameters([
+            'id' => '$response.body#/id',
+        ])
         ->description('Fetch the created user')
         ->server(Server::create('https://api.example.com'));
 
     expect($link->toArray())->toBe([
         'operationId' => 'users.show',
-        'parameters' => ['id' => '$response.body#/id'],
+        'parameters' => [
+            'id' => '$response.body#/id',
+        ],
         'description' => 'Fetch the created user',
-        'server' => ['url' => 'https://api.example.com'],
+        'server' => [
+            'url' => 'https://api.example.com',
+        ],
     ]);
 });
 
 it('supports operationRef and requestBody', function (): void {
     $link = Link::create()
         ->operationRef('#/paths/~1users~1{id}/get')
-        ->requestBody(['body' => 'value']);
+        ->requestBody([
+            'body' => 'value',
+        ]);
 
     expect($link->toArray())->toBe([
         'operationRef' => '#/paths/~1users~1{id}/get',
-        'requestBody' => ['body' => 'value'],
+        'requestBody' => [
+            'body' => 'value',
+        ],
     ]);
 });
 

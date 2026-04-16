@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\Example;
-use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Reference;
 
 it('knows its own content type', function (): void {
     expect(MediaType::json()->getContentType())->toBe('application/json');
@@ -19,40 +19,52 @@ it('knows its own content type', function (): void {
 });
 
 it('accepts a JsonSchema and strips $schema/title when serialized', function (): void {
-    $media = MediaType::json(Schema::object('Ignored')->properties(
+    $mediaType = MediaType::json(Schema::object('Ignored')->properties(
         Schema::string('id'),
     ));
 
-    expect($media->toArray())->toBe([
+    expect($mediaType->toArray())->toBe([
         'schema' => [
             'type' => 'object',
-            'properties' => ['id' => ['type' => 'string']],
+            'properties' => [
+                'id' => [
+                    'type' => 'string',
+                ],
+            ],
         ],
     ]);
 });
 
 it('accepts a Reference', function (): void {
-    $media = MediaType::json(Reference::to('#/components/schemas/User'));
+    $mediaType = MediaType::json(Reference::to('#/components/schemas/User'));
 
-    expect($media->toArray())->toBe([
-        'schema' => ['$ref' => '#/components/schemas/User'],
+    expect($mediaType->toArray())->toBe([
+        'schema' => [
+            '$ref' => '#/components/schemas/User',
+        ],
     ]);
 });
 
 it('supports example and examples', function (): void {
-    $media = MediaType::json(Schema::string())
+    $mediaType = MediaType::json(Schema::string())
         ->example('foo')
         ->examples([
             'first' => Example::create()->value('a'),
             'second' => Reference::to('#/components/examples/Second'),
         ]);
 
-    expect($media->toArray())->toBe([
-        'schema' => ['type' => 'string'],
+    expect($mediaType->toArray())->toBe([
+        'schema' => [
+            'type' => 'string',
+        ],
         'example' => 'foo',
         'examples' => [
-            'first' => ['value' => 'a'],
-            'second' => ['$ref' => '#/components/examples/Second'],
+            'first' => [
+                'value' => 'a',
+            ],
+            'second' => [
+                '$ref' => '#/components/examples/Second',
+            ],
         ],
     ]);
 });

@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\OpenApi;
-use Cortex\OpenApi\Enums\In;
+use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\Tag;
 use Cortex\OpenApi\Objects\Info;
+use Symfony\Component\Yaml\Yaml;
 use Cortex\OpenApi\Objects\Server;
-use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Callback;
-use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Response;
-use Cortex\OpenApi\Objects\Parameter;
 use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\OAuthFlow;
+use Cortex\OpenApi\Objects\Operation;
+use Cortex\OpenApi\Objects\Parameter;
 use Cortex\OpenApi\Objects\Reference;
-use Cortex\OpenApi\Objects\OAuthFlows;
 use Cortex\OpenApi\Objects\Components;
+use Cortex\OpenApi\Objects\OAuthFlows;
 use Cortex\OpenApi\Objects\RequestBody;
 use Cortex\OpenApi\Objects\SecurityScheme;
 use Cortex\OpenApi\Objects\SecurityRequirement;
 
 function buildPetstore(): OpenApi
 {
-    $petSchema = Schema::object('Pet')->properties(
+    $objectSchema = Schema::object('Pet')->properties(
         Schema::integer('id')->format('int64')->required(),
         Schema::string('name')->required(),
         Schema::string('tag'),
@@ -46,7 +46,7 @@ function buildPetstore(): OpenApi
         ->tags(Tag::create('pets')->description('Everything about pets'))
         ->components(
             Components::create()
-                ->schema('Pet', $petSchema)
+                ->schema('Pet', $objectSchema)
                 ->schema('Error', $errorSchema)
                 ->securityScheme('OAuth2', SecurityScheme::oauth2(
                     OAuthFlows::create()->authorizationCode(
@@ -126,10 +126,10 @@ function buildPetstore(): OpenApi
 }
 
 it('builds a petstore-style document and validates against meta-schema', function (): void {
-    $doc = buildPetstore();
-    $doc->validate();
+    $openApi = buildPetstore();
+    $openApi->validate();
 
-    $arr = $doc->toArray();
+    $arr = $openApi->toArray();
 
     expect($arr['openapi'])->toBe('3.1.0');
     expect($arr['info']['title'])->toBe('Swagger Petstore');
@@ -141,26 +141,26 @@ it('builds a petstore-style document and validates against meta-schema', functio
 });
 
 it('round-trips through JSON encoding', function (): void {
-    $doc = buildPetstore();
-    $json = $doc->toJson();
+    $openApi = buildPetstore();
+    $json = $openApi->toJson();
 
-    expect(json_decode($json, true))->toBe($doc->toArray());
+    expect(json_decode($json, true))->toBe($openApi->toArray());
 });
 
 it('round-trips through YAML encoding', function (): void {
-    $doc = buildPetstore();
+    $openApi = buildPetstore();
 
-    expect(class_exists(\Symfony\Component\Yaml\Yaml::class))
+    expect(class_exists(Yaml::class))
         ->toBeTrue('symfony/yaml must be installed in dev');
 
-    $yaml = $doc->toYaml();
+    $yaml = $openApi->toYaml();
 
-    expect(\Symfony\Component\Yaml\Yaml::parse($yaml))->toBe($doc->toArray());
+    expect(Yaml::parse($yaml))->toBe($openApi->toArray());
 });
 
 it('embeds schemas without $schema or title', function (): void {
     // Inline schemas must not carry the JSON Schema $schema URI or a builder-assigned title.
-    $doc = OpenApi::create()
+    $openApi = OpenApi::create()
         ->info(Info::create()->title('x')->version('1'))
         ->paths(
             PathItem::create('/foo')->operations(
@@ -170,12 +170,16 @@ it('embeds schemas without $schema or title', function (): void {
             ),
         );
 
-    $inline = $doc->toArray()['paths']['/foo']['get']['responses']['200']['content']['application/json']['schema'];
+    $inline = $openApi->toArray()['paths']['/foo']['get']['responses']['200']['content']['application/json']['schema'];
 
     expect($inline)->not->toHaveKey('$schema');
     expect($inline)->not->toHaveKey('title');
     expect($inline)->toBe([
         'type' => 'object',
-        'properties' => ['bar' => ['type' => 'string']],
+        'properties' => [
+            'bar' => [
+                'type' => 'string',
+            ],
+        ],
     ]);
 });

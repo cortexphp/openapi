@@ -7,12 +7,12 @@ namespace Cortex\OpenApi\Objects;
 use InvalidArgumentException;
 use Cortex\OpenApi\Contracts\Serializable;
 
-final class Reference implements Serializable
+final readonly class Reference implements Serializable
 {
     private function __construct(
-        private readonly string $pointer,
-        private readonly ?string $summary,
-        private readonly ?string $description,
+        private string $pointer,
+        private ?string $summary,
+        private ?string $description,
     ) {}
 
     public static function to(string $pointer, ?string $summary = null, ?string $description = null): self
@@ -29,7 +29,9 @@ final class Reference implements Serializable
      */
     public function toArray(): array
     {
-        $output = ['$ref' => $this->pointer];
+        $output = [
+            '$ref' => $this->pointer,
+        ];
 
         if ($this->summary !== null) {
             $output['summary'] = $this->summary;
