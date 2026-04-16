@@ -8,8 +8,9 @@ use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
 use Cortex\JsonSchema\Contracts\JsonSchema;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
-final class MediaType implements Serializable
+final class MediaType implements Serializable, HasExtensionsInterface
 {
     use BuildsArray;
     use HasExtensions;

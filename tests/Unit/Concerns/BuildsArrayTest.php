@@ -6,8 +6,9 @@ use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
-final class BuildsArrayFixture
+final class BuildsArrayFixture implements HasExtensionsInterface
 {
     use BuildsArray;
     use HasExtensions;

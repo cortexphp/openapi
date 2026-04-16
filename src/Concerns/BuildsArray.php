@@ -6,6 +6,7 @@ namespace Cortex\OpenApi\Concerns;
 
 use Cortex\OpenApi\Contracts\Serializable;
 use Cortex\JsonSchema\Contracts\JsonSchema;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
 trait BuildsArray
 {
@@ -36,11 +37,8 @@ trait BuildsArray
             $output[$key] = $unwrapped;
         }
 
-        if (method_exists($this, 'getExtensions')) {
-            /** @var array<string, mixed> $extensions */
-            $extensions = $this->getExtensions();
-
-            foreach ($extensions as $extensionKey => $extensionValue) {
+        if ($this instanceof HasExtensionsInterface) {
+            foreach ($this->getExtensions() as $extensionKey => $extensionValue) {
                 $output[$extensionKey] = $extensionValue;
             }
         }

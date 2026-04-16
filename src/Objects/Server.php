@@ -7,8 +7,9 @@ namespace Cortex\OpenApi\Objects;
 use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
-final class Server implements Serializable
+final class Server implements Serializable, HasExtensionsInterface
 {
     use BuildsArray;
     use HasExtensions;

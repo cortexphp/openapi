@@ -6,8 +6,9 @@ namespace Cortex\OpenApi\Objects;
 
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
-final class Callback implements Serializable
+final class Callback implements Serializable, HasExtensionsInterface
 {
     use HasExtensions;
 

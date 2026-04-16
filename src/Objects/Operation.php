@@ -8,8 +8,9 @@ use Cortex\OpenApi\Enums\HttpMethod;
 use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
-final class Operation implements Serializable
+final class Operation implements Serializable, HasExtensionsInterface
 {
     use BuildsArray;
     use HasExtensions;

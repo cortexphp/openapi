@@ -22,10 +22,12 @@ use Cortex\OpenApi\Objects\ExternalDocs;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
 use Opis\JsonSchema\Errors\ErrorFormatter;
+use Opis\JsonSchema\Errors\ValidationError;
 use Cortex\OpenApi\Objects\SecurityRequirement;
 use Cortex\OpenApi\Exceptions\ValidationException;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
-final class OpenApi implements Serializable
+final class OpenApi implements Serializable, HasExtensionsInterface
 {
     use BuildsArray;
     use HasExtensions;
@@ -249,11 +251,16 @@ final class OpenApi implements Serializable
                 $metaSchema,
             );
         } catch (Throwable $throwable) {
-            throw new ValidationException($throwable->getMessage(), $throwable->getCode(), previous: $throwable);
+            throw new ValidationException($throwable->getMessage(), previous: $throwable);
         }
 
         if ($result->hasError()) {
             $error = $result->error();
+
+            if (! $error instanceof ValidationError) {
+                return;
+            }
+
             $formatted = (new ErrorFormatter())->format($error);
 
             throw new ValidationException(

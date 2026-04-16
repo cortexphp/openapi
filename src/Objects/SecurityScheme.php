@@ -9,8 +9,9 @@ use Cortex\OpenApi\Concerns\BuildsArray;
 use Cortex\OpenApi\Concerns\HasExtensions;
 use Cortex\OpenApi\Contracts\Serializable;
 use Cortex\OpenApi\Enums\SecuritySchemeType;
+use Cortex\OpenApi\Contracts\HasExtensionsInterface;
 
-final class SecurityScheme implements Serializable
+final class SecurityScheme implements Serializable, HasExtensionsInterface
 {
     use BuildsArray;
     use HasExtensions;
