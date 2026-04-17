@@ -281,7 +281,7 @@ use Cortex\OpenApi\Objects\Operation;
 use Cortex\OpenApi\Enums\In;
 
 $doc = OpenApi::create()
-    ->info(Info::create()->title('Acme API')->version('1.0.0'))
+    ->info(Info::create('Acme API', '1.0.0'))
     ->components(
         Components::create()
             ->securityScheme('BearerAuth',

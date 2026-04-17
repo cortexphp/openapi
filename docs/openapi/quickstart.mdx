@@ -130,9 +130,7 @@ icon: 'rocket'
 
   $doc = OpenApi::create()
       ->info(
-          Info::create()
-              ->title('Petstore API')
-              ->version('1.0.0')
+          Info::create('Petstore API', '1.0.0')
               ->description('A sample Petstore API demonstrating cortexphp/openapi.'),
       )
       ->servers(Server::create('https://petstore.example.com/v1'))
@@ -157,7 +155,8 @@ icon: 'rocket'
   try {
       $doc->validate();
   } catch (ValidationException $e) {
-      echo $e->getMessage();
+      echo $e->getMessage();          // human-readable summary
+      print_r($e->errors());          // structured array of errors keyed by JSON pointer
       exit(1);
   }
 
@@ -261,15 +260,24 @@ Most objects provide named constructors so you rarely need `new`. Here's a quick
 
 ## Working with References
 
-`Reference::to()` creates a `$ref` to any component registered in `Components`. On the target class itself, `ref()` is a type-safe shortcut.
+`Reference::to()` creates a `$ref` to any component registered in `Components`. Typed named constructors on `Reference` build the correct pointer automatically — no need to write out the full path.
 
 ```php
 use Cortex\OpenApi\Objects\Reference;
 
-// Generic reference — works for anything
+// Typed shortcuts — recommended, construct the $ref path automatically
+Reference::schema('Pet')              // #/components/schemas/Pet
+Reference::response('NotFound')       // #/components/responses/NotFound
+Reference::parameter('PetId')         // #/components/parameters/PetId
+Reference::requestBody('CreateUser')  // #/components/requestBodies/CreateUser
+Reference::header('RateLimit')        // #/components/headers/RateLimit
+Reference::securityScheme('OAuth2')   // #/components/securitySchemes/OAuth2
+Reference::link('GetPet')             // #/components/links/GetPet
+Reference::callback('EventWebhook')   // #/components/callbacks/EventWebhook
+Reference::pathItem('LegacyPets')     // #/components/pathItems/LegacyPets
+
+// Generic reference — use when the bucket isn't covered above
 Reference::to('#/components/schemas/Pet')
-Reference::to('#/components/parameters/PetId')
-Reference::to('#/components/responses/NotFound')
 
 // Shortcut on the target class (equivalent, and communicates intent)
 Response::ref('#/components/responses/NotFound')
@@ -283,7 +291,7 @@ All objects support OpenAPI specification extensions via `->x()`. Keys are norma
 
 ```php
 $doc = OpenApi::create()
-    ->info(Info::create()->title('My API')->version('1.0.0'))
+    ->info(Info::create('My API', '1.0.0'))
     ->x('x-api-id', 'my-service-v1')    // prefix already present — used as-is
     ->x('internal-owner', 'platform');   // prefix added automatically → x-internal-owner
 

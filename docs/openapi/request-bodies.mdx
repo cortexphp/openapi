@@ -8,28 +8,38 @@ icon: 'file-up'
 
 `RequestBody` describes the payload an operation expects from the client. Attach it to an operation with `->requestBody()`.
 
+The `->json()` shortcut handles the most common case — a required JSON body — in one call:
+
 ```php
 use Cortex\OpenApi\Objects\RequestBody;
-use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\Operation;
 use Cortex\JsonSchema\Schema;
 
+// Shortcut — sets application/json content in one step
 Operation::post()
     ->operationId('users.create')
     ->requestBody(
         RequestBody::create()
-            ->required(true)
+            ->required()
             ->description('The new user payload')
-            ->content(
-                MediaType::json(
-                    Schema::object()->properties(
-                        Schema::string('name')->required(),
-                        Schema::string('email')->format('email')->required(),
-                    ),
+            ->json(
+                Schema::object()->properties(
+                    Schema::string('name')->required(),
+                    Schema::string('email')->format('email')->required(),
                 ),
             ),
     );
+
+// With a component reference
+Operation::put()
+    ->operationId('users.update')
+    ->requestBody(
+        RequestBody::create()->required()->json(Reference::schema('UserInput')),
+    );
 ```
+
+For multiple content types or non-JSON bodies, use `->content()` with explicit `MediaType` objects (see [MediaType](#mediatype) below).
 
 ### required
 
@@ -206,8 +216,8 @@ use Cortex\OpenApi\Objects\Reference;
 $components = Components::create()
     ->requestBody('CreateArticle',
         RequestBody::create()
-            ->required(true)
-            ->content(MediaType::json(Reference::to('#/components/schemas/ArticleInput'))),
+            ->required()
+            ->json(Reference::schema('ArticleInput')),
     );
 
 // Reference from an operation

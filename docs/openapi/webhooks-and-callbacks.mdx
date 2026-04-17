@@ -18,7 +18,7 @@ use Cortex\OpenApi\Objects\RequestBody;
 use Cortex\JsonSchema\Schema;
 
 $doc = OpenApi::create()
-    ->info(Info::create()->title('Events API')->version('1.0.0'))
+    ->info(Info::create('Events API', '1.0.0'))
     ->webhooks([
         'user.created' => PathItem::create('')
             ->operations(
@@ -54,6 +54,19 @@ $doc = OpenApi::create()
 <Note>
 The path string passed to `PathItem::create()` is ignored for webhooks — the key in the `webhooks` array is the webhook name. Pass an empty string or a descriptive placeholder like `'{$request.body#/callbackUrl}'` for clarity.
 </Note>
+
+### Adding Webhooks One at a Time
+
+Use `->webhook()` to add entries fluently instead of building the full array upfront:
+
+```php
+$doc->webhook('order.placed', PathItem::create('')->operations(
+        Operation::post()->operationId('webhook.order.placed')->responses(Response::ok()),
+    ))
+    ->webhook('order.shipped', PathItem::create('')->operations(
+        Operation::post()->operationId('webhook.order.shipped')->responses(Response::ok()),
+    ));
+```
 
 ### Multiple Webhook Events
 
@@ -259,7 +272,7 @@ $eventSchema = Schema::object()->properties(
 );
 
 $doc = OpenApi::create()
-    ->info(Info::create()->title('Webhook Platform')->version('1.0.0'))
+    ->info(Info::create('Webhook Platform', '1.0.0'))
     ->components(
         Components::create()
             ->schema('Event', $eventSchema)

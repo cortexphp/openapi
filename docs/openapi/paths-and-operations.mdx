@@ -19,7 +19,23 @@ PathItem::create('/articles')
     );
 ```
 
-The path is registered as the key in the document's `paths` map when you pass it to `OpenApi::paths()`.
+Pass path items to `OpenApi::paths()` (auto-keyed from the path string) or add them one at a time with `OpenApi::path()`:
+
+```php
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Reference;
+
+// Variadics — auto-keys from PathItem::getPath()
+OpenApi::create()->paths(
+    PathItem::create('/users'),
+    PathItem::create('/users/{id}'),
+);
+
+// Fluent single-add — also accepts a Reference to a path item component
+OpenApi::create()
+    ->path('/users', PathItem::create('/users'))
+    ->path('/legacy', Reference::pathItem('LegacyUsers'));
+```
 
 ### Path-Level Metadata
 
@@ -174,19 +190,21 @@ Parameter::query('filter', Schema::string())
 
 ### Serialization Style
 
-Control how arrays and objects are serialized in query strings using `->style()` and `->explode()`:
+Control how arrays and objects are serialized in query strings using `->style()` and `->explode()`. Pass the `Style` enum or a plain string.
 
 <Tabs>
 <Tab title="Form (default for query)">
   ```php
+  use Cortex\OpenApi\Enums\Style;
+
   // Default: ?color=blue&color=red (explode=true)
   Parameter::query('color', Schema::array()->items(Schema::string()))
-      ->style('form')
+      ->style(Style::Form)
       ->explode()
 
   // ?color=blue,red (explode=false)
   Parameter::query('color', Schema::array()->items(Schema::string()))
-      ->style('form')
+      ->style(Style::Form)
       ->explode(false)
   ```
 </Tab>
@@ -194,11 +212,11 @@ Control how arrays and objects are serialized in query strings using `->style()`
   ```php
   // ?color=blue%20red
   Parameter::query('color', Schema::array()->items(Schema::string()))
-      ->style('spaceDelimited')
+      ->style(Style::SpaceDelimited)
 
   // ?color=blue|red
   Parameter::query('color', Schema::array()->items(Schema::string()))
-      ->style('pipeDelimited')
+      ->style(Style::PipeDelimited)
   ```
 </Tab>
 <Tab title="Deep Object">
@@ -207,16 +225,16 @@ Control how arrays and objects are serialized in query strings using `->style()`
   Parameter::query('filter', Schema::object()->properties(
       Schema::string('status'),
       Schema::string('type'),
-  ))->style('deepObject')
+  ))->style(Style::DeepObject)
   ```
 </Tab>
 <Tab title="Path Matrix / Label">
   ```php
   // ;color=blue (matrix)
-  Parameter::path('color', Schema::string())->style('matrix')
+  Parameter::path('color', Schema::string())->style(Style::Matrix)
 
   // .blue (label)
-  Parameter::path('color', Schema::string())->style('label')
+  Parameter::path('color', Schema::string())->style(Style::Label)
   ```
 </Tab>
 </Tabs>
@@ -247,9 +265,8 @@ use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Operation;
 use Cortex\OpenApi\Objects\Parameter;
-use Cortex\OpenApi\Objects\Response;
-use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\RequestBody;
+use Cortex\OpenApi\Objects\Response;
 use Cortex\OpenApi\Objects\Reference;
 use Cortex\OpenApi\Objects\ExternalDocs;
 
@@ -266,8 +283,8 @@ PathItem::create('/articles/{slug}')
             ->summary('Get an article')
             ->externalDocs(ExternalDocs::create('https://docs.example.com/articles'))
             ->responses(
-                Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/Article'))),
-                Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                Response::ok()->json(Reference::schema('Article')),
+                Response::notFound()->json(Reference::schema('Error')),
             ),
 
         Operation::patch()
@@ -276,13 +293,13 @@ PathItem::create('/articles/{slug}')
             ->summary('Update an article')
             ->requestBody(
                 RequestBody::create()
-                    ->required(true)
-                    ->content(MediaType::json(Reference::to('#/components/schemas/ArticleUpdate'))),
+                    ->required()
+                    ->json(Reference::schema('ArticleUpdate')),
             )
             ->responses(
-                Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/Article'))),
-                Response::badRequest()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
-                Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                Response::ok()->json(Reference::schema('Article')),
+                Response::badRequest()->json(Reference::schema('Error')),
+                Response::notFound()->json(Reference::schema('Error')),
             ),
 
         Operation::delete()
@@ -291,7 +308,7 @@ PathItem::create('/articles/{slug}')
             ->summary('Delete an article')
             ->responses(
                 Response::noContent(),
-                Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                Response::notFound()->json(Reference::schema('Error')),
             ),
     );
 ```

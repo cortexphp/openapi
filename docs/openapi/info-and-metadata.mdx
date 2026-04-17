@@ -15,9 +15,7 @@ use Cortex\OpenApi\Objects\Info;
 use Cortex\OpenApi\Objects\Contact;
 use Cortex\OpenApi\Objects\License;
 
-$info = Info::create()
-    ->title('Payments API')
-    ->version('2.1.0')
+$info = Info::create('Payments API', '2.1.0')
     ->summary('Handles payment processing and refunds')
     ->description('Full description with **Markdown** support.')
     ->termsOfService('https://example.com/terms')
@@ -208,9 +206,7 @@ use Cortex\OpenApi\Objects\ExternalDocs;
 
 $doc = OpenApi::create()
     ->info(
-        Info::create()
-            ->title('Acme Platform API')
-            ->version('3.0.0')
+        Info::create('Acme Platform API', '3.0.0')
             ->summary('Powers the Acme product suite')
             ->description(<<<'MD'
                 The Acme Platform API provides programmatic access to all Acme services.

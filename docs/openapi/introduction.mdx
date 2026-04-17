@@ -93,7 +93,7 @@ $userSchema = Schema::object()->properties(
 );
 
 $doc = OpenApi::create()
-    ->info(Info::create()->title('Users API')->version('1.0.0'))
+    ->info(Info::create('Users API', '1.0.0'))
     ->servers(Server::create('https://api.example.com'))
     ->paths(
         PathItem::create('/users')->operations(

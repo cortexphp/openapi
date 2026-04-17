@@ -10,14 +10,13 @@ icon: 'file-down'
 
 ```php
 use Cortex\OpenApi\Objects\Response;
-use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\Reference;
 
 Operation::get()
     ->operationId('users.show')
     ->responses(
-        Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/User'))),
-        Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+        Response::ok()->json(Reference::schema('User')),
+        Response::notFound()->json(Reference::schema('Error')),
     );
 ```
 
@@ -55,10 +54,10 @@ Response::status(418)  // 418 I'm a Teapot
 ```php
 Operation::get()
     ->responses(
-        Response::ok()->content(MediaType::json($successSchema)),
+        Response::ok()->json($successSchema),
         Response::default()
             ->description('An unexpected error occurred')
-            ->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+            ->json(Reference::schema('Error')),
     );
 ```
 
@@ -68,7 +67,18 @@ Use `Response::default()` to cover all error codes with a single error schema ra
 
 ### Response Content
 
-Attach one or more `MediaType` objects to document the response body:
+Attach one or more `MediaType` objects to document the response body. The `->json()` shortcut handles the common case of a single JSON content type in one call:
+
+```php
+use Cortex\OpenApi\Objects\Reference;
+
+// Shortcut — sets application/json content directly
+Response::ok()->json(Reference::schema('Article'))
+Response::ok()->json(Schema::object()->properties(Schema::string('id')))
+Response::ok()->json()   // no schema — emits an empty application/json entry
+```
+
+For multiple content types or non-JSON responses, use `->content()` with `MediaType`:
 
 ```php
 use Cortex\OpenApi\Objects\MediaType;
@@ -76,8 +86,8 @@ use Cortex\OpenApi\Objects\MediaType;
 Response::ok()
     ->description('The requested resource')
     ->content(
-        MediaType::json(Reference::to('#/components/schemas/Article')),
-        MediaType::xml(Reference::to('#/components/schemas/Article')),
+        MediaType::json(Reference::schema('Article')),
+        MediaType::xml(Reference::schema('Article')),
     )
 ```
 
@@ -179,20 +189,16 @@ use Cortex\OpenApi\Objects\Components;
 
 $components = Components::create()
     ->response('NotFound',
-        Response::notFound()->content(
-            MediaType::json(Reference::to('#/components/schemas/Error')),
-        ),
+        Response::notFound()->json(Reference::schema('Error')),
     )
     ->response('Unauthorized',
-        Response::unauthorized()->content(
-            MediaType::json(Reference::to('#/components/schemas/Error')),
-        ),
+        Response::unauthorized()->json(Reference::schema('Error')),
     );
 
 // Reference from an operation
 Operation::get()
     ->responses(
-        Response::ok()->content(MediaType::json($schema)),
+        Response::ok()->json($schema),
         Response::ref('#/components/responses/NotFound'),
         Response::ref('#/components/responses/Unauthorized'),
     );
@@ -231,7 +237,6 @@ Response::ok()
 ```php
 use Cortex\JsonSchema\Schema;
 use Cortex\OpenApi\Objects\Response;
-use Cortex\OpenApi\Objects\MediaType;
 use Cortex\OpenApi\Objects\Header;
 use Cortex\OpenApi\Objects\Link;
 use Cortex\OpenApi\Objects\Reference;
@@ -253,17 +258,15 @@ Operation::post()
                     ->schema(Schema::string()->format('uri'))
                     ->description('URL of the newly created article'),
             ])
-            ->content(MediaType::json($articleSchema))
+            ->json($articleSchema)
             ->links([
                 'GetArticle' => Link::create()
                     ->operationId('articles.show')
                     ->parameters(['slug' => '$response.body#/slug']),
             ]),
 
-        Response::badRequest()
-            ->content(MediaType::json(Reference::to('#/components/schemas/ValidationError'))),
+        Response::badRequest()->json(Reference::schema('ValidationError')),
 
-        Response::unauthorized()
-            ->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+        Response::unauthorized()->json(Reference::schema('Error')),
     );
 ```
