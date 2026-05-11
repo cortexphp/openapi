@@ -48,7 +48,7 @@ it('supports operationRef and requestBody', function (): void {
 });
 
 it('supports ref() shortcut', function (): void {
-    expect(Link::ref('#/components/links/Foo')->toArray())->toBe([
+    expect(Link::ref('Foo')->toArray())->toBe([
         '$ref' => '#/components/links/Foo',
     ]);
 });

@@ -82,6 +82,12 @@ it('allowReserved() defaults to true', function (): void {
     ]);
 });
 
+it('supports ref() shortcut', function (): void {
+    expect(Header::ref('RateLimitRemaining')->toArray())->toBe([
+        '$ref' => '#/components/headers/RateLimitRemaining',
+    ]);
+});
+
 it('accepts a Style enum for style()', function (): void {
     $header = Header::create()->style(Style::Simple);
 

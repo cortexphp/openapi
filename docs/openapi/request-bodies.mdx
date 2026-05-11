@@ -74,7 +74,7 @@ use Cortex\OpenApi\Objects\Reference;
 MediaType::json(Schema::object()->properties(...))
 
 // $ref to a registered component
-MediaType::json(Reference::to('#/components/schemas/User'))
+MediaType::json(Reference::schema('User'))
 
 // Raw PHP array — escape hatch for hand-crafted schemas
 MediaType::json(['type' => 'string', 'format' => 'binary'])
@@ -92,8 +92,8 @@ A single `RequestBody` can declare multiple accepted formats. The client sends t
 RequestBody::create()
     ->required(true)
     ->content(
-        MediaType::json(Reference::to('#/components/schemas/Article')),
-        MediaType::xml(Reference::to('#/components/schemas/Article')),
+        MediaType::json(Reference::schema('Article')),
+        MediaType::xml(Reference::schema('Article')),
     )
 ```
 
@@ -223,7 +223,7 @@ $components = Components::create()
 // Reference from an operation
 Operation::post()
     ->operationId('articles.create')
-    ->requestBody(RequestBody::ref('#/components/requestBodies/CreateArticle'));
+    ->requestBody(RequestBody::ref('CreateArticle'));
 ```
 
 ## Complete Example

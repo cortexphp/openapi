@@ -126,9 +126,9 @@ final class Response implements Serializable, HasExtensionsInterface
         return new self('500');
     }
 
-    public static function ref(string $pointer): Reference
+    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
     {
-        return Reference::to($pointer);
+        return Reference::response($name, $summary, $description);
     }
 
     public function getStatusCode(): string

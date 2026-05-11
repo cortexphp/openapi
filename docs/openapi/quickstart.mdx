@@ -60,7 +60,7 @@ icon: 'rocket'
 </Step>
 
 <Step title="Define Paths and Operations">
-  Describe your API endpoints with `PathItem` and `Operation`. Use `Reference::to()` to point at component schemas rather than embedding them repeatedly.
+  Describe your API endpoints with `PathItem` and `Operation`. Use typed `Reference` shortcuts to point at component schemas rather than embedding them repeatedly.
 
   ```php
   use Cortex\OpenApi\Objects\PathItem;
@@ -83,10 +83,10 @@ icon: 'rocket'
                   ->responses(
                       Response::ok()
                           ->description('A paged array of pets')
-                          ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                          ->content(MediaType::json(Reference::schema('Pet'))),
                       Response::default()
                           ->description('Unexpected error')
-                          ->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                          ->content(MediaType::json(Reference::schema('Error'))),
                   ),
 
               Operation::post()
@@ -95,23 +95,23 @@ icon: 'rocket'
                   ->requestBody(
                       RequestBody::create()
                           ->required(true)
-                          ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                          ->content(MediaType::json(Reference::schema('Pet'))),
                   )
                   ->responses(
                       Response::created()
-                          ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                          ->content(MediaType::json(Reference::schema('Pet'))),
                   ),
           ),
 
       PathItem::create('/pets/{petId}')
-          ->parameters(Reference::to('#/components/parameters/PetId'))
+          ->parameters(Reference::parameter('PetId'))
           ->operations(
               Operation::get()
                   ->operationId('showPetById')
                   ->tags('pets')
                   ->responses(
-                      Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
-                      Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                      Response::ok()->content(MediaType::json(Reference::schema('Pet'))),
+                      Response::notFound()->content(MediaType::json(Reference::schema('Error'))),
                   ),
           ),
   ];
@@ -260,7 +260,7 @@ Most objects provide named constructors so you rarely need `new`. Here's a quick
 
 ## Working with References
 
-`Reference::to()` creates a `$ref` to any component registered in `Components`. Typed named constructors on `Reference` build the correct pointer automatically — no need to write out the full path.
+Typed named constructors on `Reference` build the correct `$ref` pointer automatically — no need to write out the full path. Use `Reference::to()` as an escape hatch when you need to reference a path outside the standard component buckets.
 
 ```php
 use Cortex\OpenApi\Objects\Reference;
@@ -280,9 +280,9 @@ Reference::pathItem('LegacyPets')     // #/components/pathItems/LegacyPets
 Reference::to('#/components/schemas/Pet')
 
 // Shortcut on the target class (equivalent, and communicates intent)
-Response::ref('#/components/responses/NotFound')
-Parameter::ref('#/components/parameters/PetId')
-RequestBody::ref('#/components/requestBodies/CreateUser')
+Response::ref('NotFound')
+Parameter::ref('PetId')
+RequestBody::ref('CreateUser')
 ```
 
 ## Vendor Extensions

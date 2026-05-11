@@ -128,7 +128,7 @@ $components = Components::create()
     ->schema('EventEnvelope', $eventEnvelope)
     ->schema('UserCreatedPayload', Schema::object()
         ->allOf(
-            Reference::to('#/components/schemas/EventEnvelope'),
+            Reference::schema('EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('id')->required(),
@@ -138,7 +138,7 @@ $components = Components::create()
         ))
     ->schema('OrderPlacedPayload', Schema::object()
         ->allOf(
-            Reference::to('#/components/schemas/EventEnvelope'),
+            Reference::schema('EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('orderId')->required(),
@@ -153,7 +153,7 @@ $doc->components($components)->webhooks([
             ->operationId('webhook.user.created')
             ->requestBody(
                 RequestBody::create()->content(
-                    MediaType::json(Reference::to('#/components/schemas/UserCreatedPayload')),
+                    MediaType::json(Reference::schema('UserCreatedPayload')),
                 ),
             )
             ->responses(Response::ok()),
@@ -232,7 +232,7 @@ $components = Components::create()
                     Operation::post()
                         ->requestBody(
                             RequestBody::create()
-                                ->content(MediaType::json(Reference::to('#/components/schemas/Event'))),
+                                ->content(MediaType::json(Reference::schema('Event'))),
                         )
                         ->responses(Response::ok()),
                 ),
@@ -243,7 +243,7 @@ $components = Components::create()
 Operation::post()
     ->operationId('hooks.subscribe')
     ->callbacks([
-        'onEvent' => Callback::ref('#/components/callbacks/EventWebhook'),
+        'onEvent' => Callback::ref('EventWebhook'),
     ]);
 ```
 
@@ -283,7 +283,7 @@ $doc = OpenApi::create()
                         Operation::post()
                             ->requestBody(
                                 RequestBody::create()->content(
-                                    MediaType::json(Reference::to('#/components/schemas/Event')),
+                                    MediaType::json(Reference::schema('Event')),
                                 ),
                             )
                             ->responses(Response::ok()),
@@ -299,7 +299,7 @@ $doc = OpenApi::create()
                 ->summary('Payment Succeeded')
                 ->requestBody(
                     RequestBody::create()->content(
-                        MediaType::json(Reference::to('#/components/schemas/Event')),
+                        MediaType::json(Reference::schema('Event')),
                     ),
                 )
                 ->responses(Response::ok()),
@@ -325,7 +325,7 @@ $doc = OpenApi::create()
                 )
                 ->responses(Response::created())
                 ->callbacks([
-                    'onEvent' => Callback::ref('#/components/callbacks/GenericWebhook'),
+                    'onEvent' => Callback::ref('GenericWebhook'),
                 ]),
         ),
     );

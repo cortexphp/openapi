@@ -83,7 +83,7 @@ it('emits style/explode/allowReserved/example', function (): void {
 });
 
 it('supports ref() shortcut', function (): void {
-    expect(Parameter::ref('#/components/parameters/PageSize')->toArray())->toBe([
+    expect(Parameter::ref('PageSize')->toArray())->toBe([
         '$ref' => '#/components/parameters/PageSize',
     ]);
 });

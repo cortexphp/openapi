@@ -142,8 +142,8 @@ it('registers every component bucket', function (): void {
 
 it('accepts a Reference in every bucket', function (): void {
     $components = Components::create()
-        ->schema('User', Reference::to('#/components/schemas/UserV1'))
-        ->response('NotFound', Reference::to('#/components/responses/NotFoundV1'));
+        ->schema('User', Reference::schema('UserV1'))
+        ->response('NotFound', Reference::response('NotFoundV1'));
 
     expect($components->toArray())->toBe([
         'schemas' => [

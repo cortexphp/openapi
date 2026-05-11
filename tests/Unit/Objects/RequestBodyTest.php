@@ -57,7 +57,7 @@ it('combines multiple media types', function (): void {
 });
 
 it('supports ref() shortcut', function (): void {
-    expect(RequestBody::ref('#/components/requestBodies/Create')->toArray())->toBe([
+    expect(RequestBody::ref('Create')->toArray())->toBe([
         '$ref' => '#/components/requestBodies/Create',
     ]);
 });

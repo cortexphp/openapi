@@ -55,7 +55,7 @@ $openApi = OpenApi::create()
                     ->operationId('users.show')
                     ->tags('Users')
                     ->responses(
-                        Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/User'))),
+                        Response::ok()->content(MediaType::json(Reference::schema('User'))),
                         Response::notFound(),
                     ),
             ),

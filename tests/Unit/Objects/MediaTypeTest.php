@@ -39,7 +39,7 @@ it('accepts a JsonSchema and strips $schema/title when serialized', function ():
 });
 
 it('accepts a Reference', function (): void {
-    $mediaType = MediaType::json(Reference::to('#/components/schemas/User'));
+    $mediaType = MediaType::json(Reference::schema('User'));
 
     expect($mediaType->toArray())->toBe([
         'schema' => [
@@ -53,7 +53,7 @@ it('supports example and examples', function (): void {
         ->example('foo')
         ->examples([
             'first' => Example::create()->value('a'),
-            'second' => Reference::to('#/components/examples/Second'),
+            'second' => Reference::example('Second'),
         ]);
 
     expect($mediaType->toArray())->toBe([

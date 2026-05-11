@@ -154,7 +154,7 @@ Header::create()
 use Cortex\OpenApi\Objects\Link;
 
 Response::created()
-    ->content(MediaType::json(Reference::to('#/components/schemas/Article')))
+    ->content(MediaType::json(Reference::schema('Article')))
     ->links([
         'GetArticleById' => Link::create()
             ->operationId('articles.show')
@@ -199,8 +199,8 @@ $components = Components::create()
 Operation::get()
     ->responses(
         Response::ok()->json($schema),
-        Response::ref('#/components/responses/NotFound'),
-        Response::ref('#/components/responses/Unauthorized'),
+        Response::ref('NotFound'),
+        Response::ref('Unauthorized'),
     );
 ```
 

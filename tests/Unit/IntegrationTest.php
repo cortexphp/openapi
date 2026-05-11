@@ -75,7 +75,7 @@ function buildPetstore(): OpenApi
                         ->responses(
                             Response::ok()
                                 ->description('A paged array of pets')
-                                ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                                ->content(MediaType::json(Reference::schema('Pet'))),
                         ),
                     Operation::post()
                         ->operationId('createPet')
@@ -83,14 +83,14 @@ function buildPetstore(): OpenApi
                         ->requestBody(
                             RequestBody::create()
                                 ->required(true)
-                                ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                                ->content(MediaType::json(Reference::schema('Pet'))),
                         )
                         ->responses(
                             Response::created()
-                                ->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
+                                ->content(MediaType::json(Reference::schema('Pet'))),
                             Response::default()
                                 ->description('Unexpected error')
-                                ->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                                ->content(MediaType::json(Reference::schema('Error'))),
                         )
                         ->callbacks([
                             'onPetCreate' => Callback::create()->expression(
@@ -104,14 +104,14 @@ function buildPetstore(): OpenApi
                         ]),
                 ),
             PathItem::create('/pets/{petId}')
-                ->parameters(Reference::to('#/components/parameters/PetId'))
+                ->parameters(Reference::parameter('PetId'))
                 ->operations(
                     Operation::get()
                         ->operationId('showPetById')
                         ->tags('pets')
                         ->responses(
-                            Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/Pet'))),
-                            Response::notFound()->content(MediaType::json(Reference::to('#/components/schemas/Error'))),
+                            Response::ok()->content(MediaType::json(Reference::schema('Pet'))),
+                            Response::notFound()->content(MediaType::json(Reference::schema('Error'))),
                         ),
                 ),
         )

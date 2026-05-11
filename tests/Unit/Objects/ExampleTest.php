@@ -37,6 +37,12 @@ it('emits externalValue when set', function (): void {
     ]);
 });
 
+it('supports ref() shortcut', function (): void {
+    expect(Example::ref('SampleUser')->toArray())->toBe([
+        '$ref' => '#/components/examples/SampleUser',
+    ]);
+});
+
 it('clears a value when explicitly cleared', function (): void {
     $example = Example::create()->value('a');
 

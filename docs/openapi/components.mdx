@@ -61,20 +61,20 @@ $components = Components::create()
     ));
 ```
 
-Reference schemas anywhere with `Reference::to()`:
+Reference schemas anywhere with typed `Reference` shortcuts:
 
 ```php
 use Cortex\OpenApi\Objects\Reference;
 
 // In a MediaType
-MediaType::json(Reference::to('#/components/schemas/User'))
+MediaType::json(Reference::schema('User'))
 
 // In a Parameter schema slot
-Parameter::query('filter', Reference::to('#/components/schemas/Filter'))
+Parameter::query('filter', Reference::schema('Filter'))
 
 // In a composed schema (allOf/oneOf/anyOf)
 Schema::object()->allOf(
-    Reference::to('#/components/schemas/BaseEntity'),
+    Reference::schema('BaseEntity'),
     Schema::object()->properties(Schema::string('title')),
 )
 ```
@@ -112,15 +112,15 @@ use Cortex\OpenApi\Objects\PathItem;
 
 PathItem::create('/users/{userId}/articles/{slug}')
     ->parameters(
-        Reference::to('#/components/parameters/UserId'),
-        Reference::to('#/components/parameters/ArticleSlug'),
+        Reference::parameter('UserId'),
+        Reference::parameter('ArticleSlug'),
     )
     ->operations(
         Operation::get()
             ->operationId('users.articles.show')
             ->parameters(
-                Reference::to('#/components/parameters/PageSize'),
-                Reference::to('#/components/parameters/PageNumber'),
+                Reference::parameter('PageSize'),
+                Reference::parameter('PageNumber'),
             ),
     );
 ```
@@ -133,7 +133,7 @@ Centralize common error responses to avoid repeating them on every operation:
 use Cortex\OpenApi\Objects\Response;
 use Cortex\OpenApi\Objects\MediaType;
 
-$errorSchema = Reference::to('#/components/schemas/Error');
+$errorSchema = Reference::schema('Error');
 
 $components = Components::create()
     ->response('BadRequest',
@@ -158,9 +158,9 @@ Reference them from operations using `Response::ref()`:
 ```php
 Operation::get()
     ->responses(
-        Response::ok()->content(MediaType::json(Reference::to('#/components/schemas/User'))),
-        Response::ref('#/components/responses/NotFound'),
-        Response::ref('#/components/responses/Unauthorized'),
+        Response::ok()->content(MediaType::json(Reference::schema('User'))),
+        Response::ref('NotFound'),
+        Response::ref('Unauthorized'),
     );
 ```
 
@@ -175,17 +175,17 @@ $components = Components::create()
     ->requestBody('CreateUser',
         RequestBody::create()
             ->required(true)
-            ->content(MediaType::json(Reference::to('#/components/schemas/UserInput'))),
+            ->content(MediaType::json(Reference::schema('UserInput'))),
     )
     ->requestBody('UpdateUser',
         RequestBody::create()
             ->required(true)
-            ->content(MediaType::json(Reference::to('#/components/schemas/UserPatch'))),
+            ->content(MediaType::json(Reference::schema('UserPatch'))),
     );
 
 // Reference
-Operation::post()->requestBody(RequestBody::ref('#/components/requestBodies/CreateUser'));
-Operation::patch()->requestBody(RequestBody::ref('#/components/requestBodies/UpdateUser'));
+Operation::post()->requestBody(RequestBody::ref('CreateUser'));
+Operation::patch()->requestBody(RequestBody::ref('UpdateUser'));
 ```
 
 ## Security Schemes
@@ -249,8 +249,8 @@ Reference headers in a response's `->headers()` array:
 
 ```php
 Response::ok()->headers([
-    'X-Request-Id'          => Reference::to('#/components/headers/X-Request-Id'),
-    'X-RateLimit-Remaining' => Reference::to('#/components/headers/X-RateLimit-Remaining'),
+    'X-Request-Id'          => Reference::header('X-Request-Id'),
+    'X-RateLimit-Remaining' => Reference::header('X-RateLimit-Remaining'),
 ])
 ```
 
@@ -283,7 +283,7 @@ $components = Components::create()
                     ->operationId('webhook.user.event')
                     ->requestBody(
                         RequestBody::create()
-                            ->content(MediaType::json(Reference::to('#/components/schemas/UserEvent'))),
+                            ->content(MediaType::json(Reference::schema('UserEvent'))),
                     )
                     ->responses(Response::ok()),
             ),
@@ -328,12 +328,12 @@ $components = Components::create()
     // Shared responses
     ->response('NotFound',
         Response::notFound()->content(
-            MediaType::json(Reference::to('#/components/schemas/Error')),
+            MediaType::json(Reference::schema('Error')),
         ),
     )
     ->response('Unauthorized',
         Response::unauthorized()->content(
-            MediaType::json(Reference::to('#/components/schemas/Error')),
+            MediaType::json(Reference::schema('Error')),
         ),
     )
 

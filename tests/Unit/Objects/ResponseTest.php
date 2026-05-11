@@ -81,7 +81,7 @@ it('emits content, headers, and links', function (): void {
 });
 
 it('supports ref() shortcut', function (): void {
-    expect(Response::ref('#/components/responses/Unauthorized')->toArray())->toBe([
+    expect(Response::ref('Unauthorized')->toArray())->toBe([
         '$ref' => '#/components/responses/Unauthorized',
     ]);
 });
@@ -97,7 +97,7 @@ it('adds headers one at a time with header()', function (): void {
 it('adds links one at a time with link()', function (): void {
     $response = Response::ok()
         ->link('self', Link::create()->operationId('users.show'))
-        ->link('next', Link::ref('#/components/links/NextUser'));
+        ->link('next', Link::ref('NextUser'));
 
     expect($response->toArray()['links'])->toHaveKeys(['self', 'next']);
 });
