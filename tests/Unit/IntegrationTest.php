@@ -75,7 +75,7 @@ function buildPetstore(): OpenApi
                         ->responses(
                             Response::ok()
                                 ->description('A paged array of pets')
-                                ->content(MediaType::json(Reference::schema('Pet'))),
+                                ->json(Reference::schema('Pet')),
                         ),
                     Operation::post()
                         ->operationId('createPet')
@@ -83,14 +83,14 @@ function buildPetstore(): OpenApi
                         ->requestBody(
                             RequestBody::create()
                                 ->required(true)
-                                ->content(MediaType::json(Reference::schema('Pet'))),
+                                ->json(Reference::schema('Pet')),
                         )
                         ->responses(
                             Response::created()
-                                ->content(MediaType::json(Reference::schema('Pet'))),
+                                ->json(Reference::schema('Pet')),
                             Response::default()
                                 ->description('Unexpected error')
-                                ->content(MediaType::json(Reference::schema('Error'))),
+                                ->json(Reference::schema('Error')),
                         )
                         ->callbacks([
                             'onPetCreate' => Callback::create()->expression(
@@ -110,8 +110,8 @@ function buildPetstore(): OpenApi
                         ->operationId('showPetById')
                         ->tags('pets')
                         ->responses(
-                            Response::ok()->content(MediaType::json(Reference::schema('Pet'))),
-                            Response::notFound()->content(MediaType::json(Reference::schema('Error'))),
+                            Response::ok()->json(Reference::schema('Pet')),
+                            Response::notFound()->json(Reference::schema('Error')),
                         ),
                 ),
         )
@@ -119,6 +119,7 @@ function buildPetstore(): OpenApi
             'pet.deleted' => PathItem::create('/pet.deleted')->operations(
                 Operation::post()
                     ->operationId('petDeletedWebhook')
+                    ->requestBody(RequestBody::create()->json(Reference::schema('Pet')))
                     ->responses(Response::ok()),
             ),
         ])
