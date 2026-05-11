@@ -63,7 +63,15 @@ $openApi = OpenApi::create()
 
 echo $openApi->toJson(JSON_PRETTY_PRINT);
 ```
+## Documentation
+
+📚 **[View Full Documentation →](https://docs.cortexphp.com/openapi)**
+
+## Credits
+
+- [Sean Tymon](https://github.com/tymondesigns)
+- [All Contributors](../../contributors)
 
 ## License
 
-The MIT License (MIT). See [LICENSE.md](LICENSE.md).
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
