@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Pest;
+
+/**
+ * Augments Pest's Expectation with project-specific expectations registered in tests/Expectations.php.
+ *
+ * @template TValue
+ *
+ * @method self<TValue> toFailOpenApiValidation(array<string, list<string>> $expectedErrors)
+ * @method self<TValue> toFailOpenApiValidationAt(string $pointer, string $message)
+ * @method self<TValue> toPassOpenApiValidation()
+ */
+class Expectation
+{
+}
