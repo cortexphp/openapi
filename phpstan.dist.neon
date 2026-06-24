@@ -5,5 +5,7 @@ parameters:
   level: 10
   paths:
     - src
+  stubFiles:
+    - tests/phpstan/pest-expectations.stub
   tmpDir: .phpstan-cache
   checkBenevolentUnionTypes: true
