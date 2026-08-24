@@ -32,7 +32,7 @@
         "phpstan/phpstan-strict-rules": "^2.0",
         "rector/rector": "^2.2",
         "symfony/yaml": "^6.0 || ^7.0",
-        "symplify/easy-coding-standard": "13.2.3"
+        "symplify/easy-coding-standard": "13.2.18"
     },
     "suggest": {
         "symfony/yaml": "Required for OpenApi::toYaml() output (^6.0 || ^7.0)."
