@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Tag;
 use Cortex\OpenApi\Objects\Server;
 use Cortex\OpenApi\Enums\HttpMethod;
 use Cortex\OpenApi\Objects\Callback;
@@ -47,6 +48,22 @@ it('emits tags/summary/description/operationId/deprecated', function (): void {
         'description' => 'Creates a new user',
         'operationId' => 'users.create',
         'deprecated' => true,
+    ]);
+});
+
+it('resolves Tag objects to their names', function (): void {
+    $operation = Operation::get()->tags(Tag::create('Users'), Tag::create('Admin'));
+
+    expect($operation->toArray())->toBe([
+        'tags' => ['Users', 'Admin'],
+    ]);
+});
+
+it('accepts a mix of Tag objects and tag name strings', function (): void {
+    $operation = Operation::get()->tags(Tag::create('Users'), 'Admin');
+
+    expect($operation->toArray())->toBe([
+        'tags' => ['Users', 'Admin'],
     ]);
 });
 

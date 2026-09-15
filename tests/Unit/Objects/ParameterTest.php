@@ -37,6 +37,33 @@ it('builds a query parameter', function (): void {
     ]);
 });
 
+it('strips a constructor schema title when embedding', function (): void {
+    $parameter = Parameter::query('when')->schema(Schema::string('IsoDateTime'));
+
+    expect($parameter->toArray())->toBe([
+        'name' => 'when',
+        'in' => 'query',
+        'schema' => [
+            'type' => 'string',
+        ],
+    ]);
+});
+
+it('keeps a deliberate schema title when embedding', function (): void {
+    $parameter = Parameter::query('when')->schema(
+        Schema::string('IsoDateTime')->title('ISO 8601 date-time'),
+    );
+
+    expect($parameter->toArray())->toBe([
+        'name' => 'when',
+        'in' => 'query',
+        'schema' => [
+            'type' => 'string',
+            'title' => 'ISO 8601 date-time',
+        ],
+    ]);
+});
+
 it('builds a header parameter', function (): void {
     $parameter = Parameter::header('X-Trace', Schema::string())->required(true);
 

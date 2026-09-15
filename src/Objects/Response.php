@@ -33,7 +33,7 @@ final class Response implements Serializable, HasExtensionsInterface
         '500' => 'Internal Server Error',
     ];
 
-    private ?string $description = null;
+    private ?string $description;
 
     /**
      * @var array<string, Header|Reference>

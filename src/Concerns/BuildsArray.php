@@ -62,9 +62,13 @@ trait BuildsArray
         }
 
         if ($value instanceof JsonSchema) {
-            // Inline schemas in OpenAPI must not carry the JSON Schema $schema URI or
-            // a builder-assigned title, so strip both when embedding.
-            return $value->toArray(includeSchemaRef: false, includeTitle: false);
+            // Inline schemas must not carry the JSON Schema $schema URI. Constructor
+            // titles are builder-assigned names and are stripped; a title() value that
+            // differs from getInitialTitle() was set deliberately and is kept.
+            $title = $value->getTitle();
+            $includeTitle = $title !== null && $title !== $value->getInitialTitle();
+
+            return $value->toArray(includeSchemaRef: false, includeTitle: $includeTitle);
         }
 
         if (is_array($value)) {

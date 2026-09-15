@@ -106,9 +106,13 @@ final class Operation implements Serializable, HasExtensionsInterface
         return $this->httpMethod;
     }
 
-    public function tags(string ...$tags): self
+    public function tags(Tag|string ...$tags): self
     {
-        $this->tags = array_values($tags);
+        $this->tags = [];
+
+        foreach ($tags as $tag) {
+            $this->tags[] = $tag instanceof Tag ? $tag->getName() : $tag;
+        }
 
         return $this;
     }
