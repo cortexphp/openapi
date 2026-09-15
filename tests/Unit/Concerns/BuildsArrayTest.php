@@ -195,3 +195,54 @@ it('unwraps a Cortex JsonSchema stripping $schema and title', function (): void 
         ],
     ]);
 });
+
+it('keeps a JsonSchema title that differs from the constructor argument', function (): void {
+    $objectSchema = Schema::object('Consult')->title('consults');
+
+    expect($objectSchema->getTitle())->toBe('consults')
+        ->and($objectSchema->getInitialTitle())->toBe('Consult');
+
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => $objectSchema,
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            'title' => 'consults',
+        ],
+    ]);
+    expect($out['schema'])->not->toHaveKey('$schema');
+});
+
+it('keeps a JsonSchema title set on a schema that had no constructor title', function (): void {
+    $stringSchema = Schema::string()->title('IsoDateTime');
+
+    expect($stringSchema->getTitle())->toBe('IsoDateTime')
+        ->and($stringSchema->getInitialTitle())->toBeNull();
+
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => $stringSchema,
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'string',
+            'title' => 'IsoDateTime',
+        ],
+    ]);
+});
+
+it('strips a JsonSchema title that merely restates the constructor argument', function (): void {
+    $stringSchema = Schema::string('IsoDateTime')->title('IsoDateTime');
+
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => $stringSchema,
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'string',
+        ],
+    ]);
+});

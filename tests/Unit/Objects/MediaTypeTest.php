@@ -38,6 +38,17 @@ it('accepts a JsonSchema and strips $schema/title when serialized', function ():
     ]);
 });
 
+it('keeps a deliberate schema title when embedding', function (): void {
+    $mediaType = MediaType::json()->schema(Schema::object('Consult')->title('consults'));
+
+    expect($mediaType->toArray())->toBe([
+        'schema' => [
+            'type' => 'object',
+            'title' => 'consults',
+        ],
+    ]);
+});
+
 it('accepts a Reference', function (): void {
     $mediaType = MediaType::json(Reference::schema('User'));
 
