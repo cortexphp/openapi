@@ -273,16 +273,18 @@ Reference::requestBody('CreateUser')  // #/components/requestBodies/CreateUser
 Reference::header('RateLimit')        // #/components/headers/RateLimit
 Reference::securityScheme('OAuth2')   // #/components/securitySchemes/OAuth2
 Reference::link('GetPet')             // #/components/links/GetPet
+Reference::example('AdminUser')       // #/components/examples/AdminUser
 Reference::callback('EventWebhook')   // #/components/callbacks/EventWebhook
 Reference::pathItem('LegacyPets')     // #/components/pathItems/LegacyPets
 
-// Generic reference — use when the bucket isn't covered above
-Reference::to('#/components/schemas/Pet')
+// Generic reference — for a pointer outside the component buckets
+Reference::to('./common.yaml#/components/schemas/Pet')
+```
 
-// Shortcut on the target class (equivalent, and communicates intent)
-Response::ref('NotFound')
-Parameter::ref('PetId')
-RequestBody::ref('CreateUser')
+Every reference is built here, so there is one place to look and one spelling to remember. The exception is a response inside `Operation::responses()`, which needs a status code to key on — see [Responses](/openapi/responses):
+
+```php
+Response::notFound()->ref('NotFound')
 ```
 
 ## Vendor Extensions

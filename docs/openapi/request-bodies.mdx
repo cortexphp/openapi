@@ -162,7 +162,7 @@ MediaType::multipart($uploadSchema)->encoding([
 |--------|-------------|
 | `->contentType(string)` | Override MIME type for the part (default: field's schema type) |
 | `->headers(array)` | Custom HTTP headers on this part |
-| `->style(string)` | Serialization style for complex types |
+| `->style(...)` | Serialization style for complex types (`Style` enum or a spec string such as `'form'`) |
 | `->explode(bool)` | Explode arrays into separate parts |
 | `->allowReserved(bool)` | Allow RFC3986 reserved characters unencoded |
 
@@ -223,7 +223,7 @@ $components = Components::create()
 // Reference from an operation
 Operation::post()
     ->operationId('articles.create')
-    ->requestBody(RequestBody::ref('CreateArticle'));
+    ->requestBody(Reference::requestBody('CreateArticle'));
 ```
 
 ## Complete Example

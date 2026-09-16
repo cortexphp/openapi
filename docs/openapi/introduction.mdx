@@ -154,17 +154,90 @@ MediaType::json($addressSchema);
 Parameter::query('filter', Schema::string()->enum(['active', 'archived']));
 ```
 
-When serializing, `$schema` URI and `title` are automatically stripped from inline schemas per the OpenAPI spec — the sibling schema object is never mutated.
+Embedding copies the schema into the slot and never mutates the object you passed, so the same schema can be reused across a document. Two things are cleaned up on the way in, at every depth:
+
+- The JSON Schema `$schema` URI is dropped. An OpenAPI document declares its dialect once, at the top level.
+- The name you gave a builder — `Schema::object('Pet')`, `Schema::string('id')` — is dropped. It labels the variable, not the API.
+
+A `title` you set explicitly is kept, because that is documentation you meant to publish:
+
+```php
+// The constructor name is a builder label
+MediaType::json(Schema::object('Consult'));
+// schema: { "type": "object" }
+
+// ->title() is published
+MediaType::json(Schema::object('Consult')->title('Consultation'));
+// schema: { "type": "object", "title": "Consultation" }
+```
+
+<Tip>
+`properties()` takes its key from each child's constructor name (`Schema::string('email')`), so property schemas do need one — and it is never duplicated into the output as a `title`.
+</Tip>
+
+### OpenAPI-only Schema Fields
+
+`discriminator` and `xml` come from OpenAPI rather than JSON Schema, so they have no builder method. Every schema slot also accepts a plain array, which lets you spread a built schema and add them:
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\Discriminator;
+use Cortex\OpenApi\Objects\MediaType;
+
+$pet = Schema::object()->properties(
+    Schema::string('petType')->required(),
+);
+
+MediaType::json([
+    ...$pet->toArray(includeSchemaRef: false),
+    'discriminator' => Discriminator::create('petType')
+        ->mapping(['dog' => '#/components/schemas/Dog'])
+        ->toArray(),
+]);
+```
+
+### References Inside Schemas
+
+`Reference` is an OpenAPI object for schema *slots* — `MediaType`, `Parameter`, `Header`, `Components::schema()`. To point at a component from inside a schema you are composing, use the JSON Schema builder's own `ref()`:
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Reference;
+
+// A slot takes a Reference
+MediaType::json(Reference::schema('User'));
+
+// Composition takes a schema — typeless() emits a bare $ref with no stray "type"
+Schema::object()->allOf(
+    Schema::typeless()->ref('#/components/schemas/BaseEntity'),
+    Schema::object()->properties(Schema::string('title')),
+);
+```
 
 ## OpenAPI Version Support
 
 <Info>
-The default version is **3.1.0**. Use `OpenApi::v311()` to target the 3.1.1 revision, which includes clarifications and minor fixes.
+The default version is **3.1.0**. Pass `OpenApiVersion::V3_1_1` to target the 3.1.1 revision, which includes clarifications and minor fixes.
 </Info>
 
-| Version | Status | Named Constructor |
-|---------|--------|-------------------|
-| 3.1.0 | Supported | `OpenApi::create()` or `OpenApi::v310()` |
-| 3.1.1 | Supported | `OpenApi::v311()` |
+| Version | Status | Constructor |
+|---------|--------|-------------|
+| 3.1.0 | Supported | `OpenApi::create()` or `OpenApi::create(OpenApiVersion::V3_1_0)` |
+| 3.1.1 | Supported | `OpenApi::create(OpenApiVersion::V3_1_1)` |
 
-Both versions ship with their official meta-schema bundled — validation works fully offline.
+```php
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Enums\OpenApiVersion;
+
+OpenApi::create();                              // 3.1.0
+OpenApi::create(OpenApiVersion::V3_1_1);        // 3.1.1
+```
+
+Both versions ship with their official meta-schema bundled, so [validation](/openapi/validation-and-output) works fully offline.
+
+Schema Objects are read as JSON Schema 2020-12 unless you say otherwise. If your schemas use a different dialect, announce it once on the document:
+
+```php
+OpenApi::create()->jsonSchemaDialect('https://json-schema.org/draft/2020-12/schema');
+```

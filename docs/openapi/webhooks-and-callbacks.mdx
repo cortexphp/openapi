@@ -10,6 +10,7 @@ Webhooks are HTTP requests that **your server sends** to a subscriber-provided U
 
 ```php
 use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Info;
 use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Operation;
 use Cortex\OpenApi\Objects\Response;
@@ -128,7 +129,7 @@ $components = Components::create()
     ->schema('EventEnvelope', $eventEnvelope)
     ->schema('UserCreatedPayload', Schema::object()
         ->allOf(
-            Reference::schema('EventEnvelope'),
+            Schema::typeless()->ref('#/components/schemas/EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('id')->required(),
@@ -138,7 +139,7 @@ $components = Components::create()
         ))
     ->schema('OrderPlacedPayload', Schema::object()
         ->allOf(
-            Reference::schema('EventEnvelope'),
+            Schema::typeless()->ref('#/components/schemas/EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('orderId')->required(),
@@ -206,6 +207,19 @@ Operation::post()
     ]);
 ```
 
+`Operation::callback()` adds entries one at a time, the same way `OpenApi::webhook()` does:
+
+```php
+Operation::post()
+    ->callback('onEvent', Reference::callback('EventWebhook'))
+    ->callback('onError', Callback::create()->expression(
+        '{$request.body#/errorUrl}',
+        PathItem::create('')->operations(
+            Operation::post()->responses(Response::ok()),
+        ),
+    ));
+```
+
 ### Runtime Expressions
 
 The key passed to `->expression()` is a runtime expression evaluated against the original API request:
@@ -243,7 +257,7 @@ $components = Components::create()
 Operation::post()
     ->operationId('hooks.subscribe')
     ->callbacks([
-        'onEvent' => Callback::ref('EventWebhook'),
+        'onEvent' => Reference::callback('EventWebhook'),
     ]);
 ```
 
@@ -325,7 +339,7 @@ $doc = OpenApi::create()
                 )
                 ->responses(Response::created())
                 ->callbacks([
-                    'onEvent' => Callback::ref('GenericWebhook'),
+                    'onEvent' => Reference::callback('GenericWebhook'),
                 ]),
         ),
     );

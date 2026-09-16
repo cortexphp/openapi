@@ -68,7 +68,9 @@ trait BuildsArray
             $title = $value->getTitle();
             $includeTitle = $title !== null && $title !== $value->getInitialTitle();
 
-            return $value->toArray(includeSchemaRef: false, includeTitle: $includeTitle);
+            return $this->stripSchemaRef(
+                $value->toArray(includeSchemaRef: false, includeTitle: $includeTitle),
+            );
         }
 
         if (is_array($value)) {
@@ -89,5 +91,60 @@ trait BuildsArray
         }
 
         return $value;
+    }
+
+    /**
+     * $schema must not appear outside the root of a schema resource (JSON Schema
+     * 2020-12 core, 8.1.1), and the builder cannot produce a nested resource root, so
+     * every nested occurrence is invalid. cortexphp/json-schema emits one anyway for
+     * contains as of 2.0. Recursion walks nested schemas, not instance values under
+     * default, enum, or examples. A raw array schema is left alone, which is
+     * the way to declare a dialect deliberately.
+     *
+     * @param array<array-key, mixed> $schema
+     *
+     * @return array<array-key, mixed>
+     */
+    private function stripSchemaRef(array $schema): array
+    {
+        // Maps whose keys are user-chosen names (a property may legitimately be named "$schema").
+        $namedSubschemaKeys = ['properties', 'patternProperties', 'dependentSchemas', '$defs', 'definitions'];
+        $instanceValueKeys = ['default', 'enum', 'examples'];
+
+        unset($schema['$schema']);
+
+        foreach ($schema as $key => $value) {
+            if (! is_array($value) || in_array($key, $instanceValueKeys, true)) {
+                continue;
+            }
+
+            if (in_array($key, $namedSubschemaKeys, true)) {
+                foreach ($value as $name => $subschema) {
+                    if (is_array($subschema)) {
+                        $value[$name] = $this->stripSchemaRef($subschema);
+                    }
+                }
+
+                $schema[$key] = $value;
+
+                continue;
+            }
+
+            if (array_is_list($value)) {
+                foreach ($value as $index => $subschema) {
+                    if (is_array($subschema)) {
+                        $value[$index] = $this->stripSchemaRef($subschema);
+                    }
+                }
+
+                $schema[$key] = $value;
+
+                continue;
+            }
+
+            $schema[$key] = $this->stripSchemaRef($value);
+        }
+
+        return $schema;
     }
 }

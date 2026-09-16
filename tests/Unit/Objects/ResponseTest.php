@@ -85,9 +85,33 @@ it('emits content, headers, and links', function (): void {
     ]);
 });
 
-it('supports ref() shortcut', function (): void {
-    expect(Response::ref('Unauthorized')->toArray())->toBe([
-        '$ref' => '#/components/responses/Unauthorized',
+it('ref() serializes to the reference alone', function (): void {
+    expect(Response::notFound()->ref('NotFound')->toArray())->toBe([
+        '$ref' => '#/components/responses/NotFound',
+    ]);
+});
+
+it('ref() keeps the status code so responses() can key it', function (): void {
+    expect(Response::notFound()->ref('NotFound')->getStatusCode())->toBe('404');
+});
+
+it('ref() carries summary and description onto the reference', function (): void {
+    expect(Response::unauthorized()->ref('Unauthorized', 'Auth failed', 'Token missing or expired')->toArray())
+        ->toBe([
+            '$ref' => '#/components/responses/Unauthorized',
+            'summary' => 'Auth failed',
+            'description' => 'Token missing or expired',
+        ]);
+});
+
+it('ref() replaces any fields set on the response itself', function (): void {
+    $response = Response::notFound()
+        ->description('Locally described')
+        ->json(Schema::object())
+        ->ref('NotFound');
+
+    expect($response->toArray())->toBe([
+        '$ref' => '#/components/responses/NotFound',
     ]);
 });
 
@@ -102,7 +126,7 @@ it('adds headers one at a time with header()', function (): void {
 it('adds links one at a time with link()', function (): void {
     $response = Response::ok()
         ->link('self', Link::create()->operationId('users.show'))
-        ->link('next', Link::ref('NextUser'));
+        ->link('next', Reference::link('NextUser'));
 
     expect($response->toArray()['links'])->toHaveKeys(['self', 'next']);
 });

@@ -1,0 +1,163 @@
+---
+title: Validation & Output
+description: 'Validate against the official OpenAPI 3.1 meta-schema and serialize to array, JSON, or YAML'
+icon: 'shield-check'
+---
+
+## Overview
+
+A document is just an object graph until you serialize it. Two methods matter at the end of a build:
+
+1. **Validate** with `validate()` — checks the document against the official OpenAPI 3.1 meta-schema.
+2. **Serialize** with `toArray()`, `toJson()`, or `toYaml()`.
+
+```php
+use Cortex\OpenApi\Exceptions\ValidationException;
+
+try {
+    $doc->validate();
+} catch (ValidationException $e) {
+    echo $e->getMessage();
+
+    exit(1);
+}
+
+file_put_contents('openapi.json', $doc->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+```
+
+## Validation
+
+`validate()` returns nothing on success and throws `ValidationException` on failure. The meta-schemas for both 3.1.0 and 3.1.1 ship with the package, so validation never touches the network and works in CI without extra setup.
+
+```php
+$doc->validate(); // void on success
+```
+
+### Reading Errors
+
+`getMessage()` gives a one-line summary suitable for logs. `errors()` gives the structured version: a map of JSON pointers to the problems found at that location.
+
+```php
+try {
+    $doc->validate();
+} catch (ValidationException $e) {
+    print_r($e->errors());
+}
+```
+
+```
+Array
+(
+    [/] => Array
+        (
+            [0] => The required properties (info) are missing
+        )
+)
+```
+
+The pointer tells you where to look. A path that is missing its leading slash, for example, is reported against `/paths`:
+
+```
+Array
+(
+    [/paths] => Array
+        (
+            [0] => Unevaluated object properties not allowed: users
+        )
+)
+```
+
+Some spec rules are "at least one of these", and the validator reports every branch it tried. A document with no operations fails like this:
+
+```
+Array
+(
+    [/] => Array
+        (
+            [0] => The required properties (paths) are missing
+            [1] => The required properties (components) are missing
+            [2] => The required properties (webhooks) are missing
+        )
+)
+```
+
+That is one rule, not three: OpenAPI 3.1 requires a document to have at least one of `paths`, `components`, or `webhooks`. Supplying any one of them clears all three lines.
+
+<Tip>
+`ValidationException` extends `OpenApiException`, so you can catch every exception this package throws with a single `catch (OpenApiException $e)`.
+</Tip>
+
+### What Validation Covers
+
+Validation is structural: it checks the document against the spec's own meta-schema, the same rules an OpenAPI tool would apply to your published file.
+
+| Caught | Not caught |
+|--------|------------|
+| Missing required fields such as `info` | A `$ref` pointing at a component that does not exist |
+| Malformed path keys and status codes | Duplicate `operationId` values |
+| Fields in the wrong place or of the wrong type | Servers that are unreachable |
+
+Because `$ref` pointers are not resolved, a typo in `Reference::schema('Usr')` serializes and validates happily — it only surfaces in the renderer. Registering shared shapes in [Components](/openapi/components) and referencing them through the typed `Reference` helpers keeps those pointers in one place.
+
+## Output Formats
+
+<CodeGroup>
+```php Array
+$array = $doc->toArray();
+```
+
+```php JSON
+$json = $doc->toJson();                                        // compact
+$json = $doc->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+```
+
+```php YAML
+$yaml = $doc->toYaml();          // inline: 10, indent: 2
+$yaml = $doc->toYaml(4, 4);      // expand nesting sooner, indent by 4
+```
+</CodeGroup>
+
+`toJson()` passes its `$flags` straight to `json_encode()`. Adding `JSON_UNESCAPED_SLASHES` is worth it for readability, since paths and `$ref` pointers are full of slashes:
+
+```json
+"paths": { "\/users": { ... } }   // default
+"paths": { "/users": { ... } }    // with JSON_UNESCAPED_SLASHES
+```
+
+Both forms are valid JSON and parse identically.
+
+<Warning>
+`toYaml()` requires [symfony/yaml](https://symfony.com/doc/current/components/yaml.html) and throws a `RuntimeException` if it is not installed. Add it with `composer require symfony/yaml`.
+</Warning>
+
+`toYaml()`'s first argument is the depth at which YAML switches from block style to inline `{ }` style. The default of `10` keeps most documents fully expanded; lower it for a more compact file.
+
+## Writing the Document to Disk
+
+A small build script is usually all a project needs, and it doubles as a CI check:
+
+```php
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use Cortex\OpenApi\Exceptions\ValidationException;
+
+$doc = require __DIR__ . '/openapi/document.php';
+
+try {
+    $doc->validate();
+} catch (ValidationException $e) {
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
+
+    exit(1);
+}
+
+file_put_contents(__DIR__ . '/public/openapi.json', $doc->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+file_put_contents(__DIR__ . '/public/openapi.yaml', $doc->toYaml());
+```
+
+<Check>
+Commit the generated file and run the script in CI. A failing build then means the spec drifted from the code that generates it.
+</Check>

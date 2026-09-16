@@ -37,7 +37,7 @@ Components supports ten registries, each addressable by its own `$ref` path:
 
 ## Schemas
 
-Register any `cortexphp/json-schema` schema or raw array by name:
+Register any `cortexphp/json-schema` schema or raw array by name. The component key (`'User'`) is what `$ref` pointers use, so there is no need to name the schema itself — see [how schemas are embedded](/openapi/introduction).
 
 ```php
 use Cortex\JsonSchema\Schema;
@@ -72,9 +72,9 @@ MediaType::json(Reference::schema('User'))
 // In a Parameter schema slot
 Parameter::query('filter', Reference::schema('Filter'))
 
-// In a composed schema (allOf/oneOf/anyOf)
+// Composing inside a schema — use the JSON Schema builder's own ref()
 Schema::object()->allOf(
-    Reference::schema('BaseEntity'),
+    Schema::typeless()->ref('#/components/schemas/BaseEntity'),
     Schema::object()->properties(Schema::string('title')),
 )
 ```
@@ -153,14 +153,14 @@ $components = Components::create()
     );
 ```
 
-Reference them from operations using `Response::ref()`:
+Reference them from operations with `->ref()`, which keeps the status code from the named constructor:
 
 ```php
 Operation::get()
     ->responses(
-        Response::ok()->content(MediaType::json(Reference::schema('User'))),
-        Response::ref('NotFound'),
-        Response::ref('Unauthorized'),
+        Response::ok()->json(Reference::schema('User')),
+        Response::notFound()->ref('NotFound'),
+        Response::unauthorized()->ref('Unauthorized'),
     );
 ```
 
@@ -184,8 +184,8 @@ $components = Components::create()
     );
 
 // Reference
-Operation::post()->requestBody(RequestBody::ref('CreateUser'));
-Operation::patch()->requestBody(RequestBody::ref('UpdateUser'));
+Operation::post()->requestBody(Reference::requestBody('CreateUser'));
+Operation::patch()->requestBody(Reference::requestBody('UpdateUser'));
 ```
 
 ## Security Schemes

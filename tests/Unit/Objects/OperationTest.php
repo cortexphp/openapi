@@ -168,6 +168,22 @@ it('responses() accepts only Response objects', function (): void {
     expect($operation->toArray()['responses'])->toHaveKeys(['200', '404']);
 });
 
+it('responses() accepts a referenced response and keys it by status', function (): void {
+    $operation = Operation::get()->responses(
+        Response::ok(),
+        Response::notFound()->ref('NotFound'),
+    );
+
+    expect($operation->toArray()['responses'])->toBe([
+        '200' => [
+            'description' => 'OK',
+        ],
+        '404' => [
+            '$ref' => '#/components/responses/NotFound',
+        ],
+    ]);
+});
+
 it('adds a response by explicit status key, accepting Response or Reference', function (): void {
     $operation = Operation::get()
         ->response('200', Response::ok())
@@ -194,7 +210,7 @@ it('emits callbacks when set', function (): void {
 it('adds callbacks one at a time with callback()', function (): void {
     $operation = Operation::post()
         ->callback('onData', Callback::create()->expression('{$url}', PathItem::create('/hook')))
-        ->callback('onError', Callback::ref('OnError'));
+        ->callback('onError', Reference::callback('OnError'));
 
     $arr = $operation->toArray();
     expect($arr['callbacks'])->toHaveKey('onData')

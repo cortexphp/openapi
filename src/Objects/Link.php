@@ -36,11 +36,6 @@ final class Link implements Serializable, HasExtensionsInterface
         return new self();
     }
 
-    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
-    {
-        return Reference::link($name, $summary, $description);
-    }
-
     public function operationRef(?string $operationRef): self
     {
         $this->operationRef = $operationRef;

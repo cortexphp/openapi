@@ -66,12 +66,6 @@ it('emits shared parameters and servers', function (): void {
     ]);
 });
 
-it('supports ref() shortcut', function (): void {
-    expect(PathItem::ref('UserById')->toArray())->toBe([
-        '$ref' => '#/components/pathItems/UserById',
-    ]);
-});
-
 it('emits vendor extensions', function (): void {
     $pathItem = PathItem::create('/users')
         ->x('internal', true);

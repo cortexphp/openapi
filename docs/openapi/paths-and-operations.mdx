@@ -94,12 +94,26 @@ Operation::trace()
 ```php Common fields
 Operation::get()
     ->operationId('articles.show')      // unique ID used by tooling and links
-    ->tags('articles', 'public')        // groups the operation in docs
+    ->tags('articles', 'public')        // Tag objects or name strings
     ->summary('Get an article')         // short label
     ->description('Returns a single article by its slug.')
     ->deprecated()                      // marks operation as deprecated
 ```
 </CodeGroup>
+
+### Tags
+
+`Operation::tags()` accepts name strings, `Tag` objects, or both. Document-level `Tag` objects are serialized as `{ name, description, ... }`; on an operation they become the name string only:
+
+```php
+use Cortex\OpenApi\Objects\Tag;
+
+$articles = Tag::create('articles')->description('Publishing');
+
+Operation::get()->tags('articles', 'public');
+Operation::get()->tags($articles);
+Operation::get()->tags($articles, 'public');
+```
 
 ### operationId
 
@@ -121,6 +135,31 @@ Operation::get()
     ->deprecated()
     ->description('Deprecated. Use /v2/items instead.')
 ```
+
+### Attaching Responses
+
+`responses()` takes `Response` objects and keys them from their own status code, so you rarely repeat yourself. Point a status code at a reusable response with `->ref()`:
+
+```php
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\Reference;
+
+Operation::get()
+    ->responses(
+        Response::ok()->json(Reference::schema('Article')),
+        Response::notFound()->ref('NotFound'),
+    );
+```
+
+`response()` sets a single status key, which is useful for a code with no named constructor or when adding to an existing map — `responses()` replaces the map wholesale:
+
+```php
+Operation::get()
+    ->responses(Response::ok()->json(Reference::schema('Article')))
+    ->response(418, Reference::response('Teapot'));
+```
+
+See [Responses](/openapi/responses) for headers, links, and reusable response components.
 
 ## Parameters
 

@@ -6,7 +6,7 @@ icon: 'file-down'
 
 ## Response
 
-`Response` describes a single HTTP status code outcome. Pass one or more responses to `Operation::responses()`.
+`Response` describes a single HTTP status code outcome. Pass one or more of them to `Operation::responses()` and each is keyed from its own status code:
 
 ```php
 use Cortex\OpenApi\Objects\Response;
@@ -19,6 +19,21 @@ Operation::get()
         Response::notFound()->json(Reference::schema('Error')),
     );
 ```
+
+To answer a status code with a reusable response from `Components`, use `->ref()`. The status still comes from the named constructor, so it belongs in the same `responses()` call:
+
+```php
+Operation::get()
+    ->responses(
+        Response::ok()->json(Reference::schema('User')),
+        Response::notFound()->ref('NotFound'),
+        Response::unauthorized()->ref('Unauthorized'),
+    );
+```
+
+<Tip>
+Elsewhere, references are built with `Reference::response('NotFound')` — see [Working with References](/openapi/quickstart). `->ref()` exists on `Response` because `responses()` keys each entry by status code, and a bare reference has none. Slots that supply the status themselves, such as `Components::response()` and `Operation::response(404, ...)`, take `Reference::response()`.
+</Tip>
 
 ### Named Constructors
 
@@ -199,8 +214,8 @@ $components = Components::create()
 Operation::get()
     ->responses(
         Response::ok()->json($schema),
-        Response::ref('NotFound'),
-        Response::ref('Unauthorized'),
+        Response::notFound()->ref('NotFound'),
+        Response::unauthorized()->ref('Unauthorized'),
     );
 ```
 

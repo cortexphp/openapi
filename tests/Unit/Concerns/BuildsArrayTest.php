@@ -246,3 +246,151 @@ it('strips a JsonSchema title that merely restates the constructor argument', fu
         ],
     ]);
 });
+
+it('emits no $schema in a nested item schema', function (): void {
+    $arraySchema = Schema::array()->items(Schema::object()->properties(Schema::string('name')));
+
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => $arraySchema,
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'array',
+            'items' => [
+                'type' => 'object',
+                'properties' => [
+                    'name' => [
+                        'type' => 'string',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+});
+
+it('emits no $schema in a nested contains schema', function (): void {
+    $arraySchema = Schema::array()->contains(Schema::string());
+
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => $arraySchema,
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'array',
+            'contains' => [
+                'type' => 'string',
+            ],
+        ],
+    ]);
+});
+
+it('emits no $schema at any depth', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => Schema::array()->items(
+            Schema::object()->properties(
+                Schema::array('tags')->items(Schema::string()),
+            ),
+        ),
+    ]);
+
+    $json = json_encode($out, JSON_THROW_ON_ERROR);
+
+    expect($json)->not->toContain('$schema');
+});
+
+it('keeps a property that is itself named $schema', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => Schema::object()->properties(Schema::string('$schema'), Schema::string('id')),
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            'properties' => [
+                '$schema' => [
+                    'type' => 'string',
+                ],
+                'id' => [
+                    'type' => 'string',
+                ],
+            ],
+        ],
+    ]);
+});
+
+it('leaves $schema in a raw array schema untouched', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => [
+            'type' => 'object',
+            '$schema' => 'https://example.test/dialect',
+        ],
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            '$schema' => 'https://example.test/dialect',
+        ],
+    ]);
+});
+
+it('leaves $schema inside instance values', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => Schema::object()
+            ->default([
+                '$schema' => 'literal',
+                'keep' => true,
+            ])
+            ->enum([
+                [
+                    '$schema' => 'e',
+                ],
+                [
+                    'ok' => true,
+                ],
+            ])
+            ->examples([[
+                '$schema' => 'x',
+            ]]),
+    ]);
+
+    expect($out['schema'])->toMatchArray([
+        'type' => 'object',
+        'default' => [
+            '$schema' => 'literal',
+            'keep' => true,
+        ],
+        'enum' => [
+            [
+                '$schema' => 'e',
+            ],
+            [
+                'ok' => true,
+            ],
+        ],
+        'examples' => [
+            [
+                '$schema' => 'x',
+            ],
+        ],
+    ]);
+});
+
+it('strips $schema from schemas inside allOf', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => Schema::object()->allOf(Schema::string()),
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            'allOf' => [
+                [
+                    'type' => 'string',
+                ],
+            ],
+        ],
+    ]);
+});

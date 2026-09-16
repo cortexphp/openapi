@@ -48,12 +48,6 @@ it('supports operationRef and requestBody', function (): void {
     ]);
 });
 
-it('supports ref() shortcut', function (): void {
-    expect(Link::ref('Foo')->toArray())->toBe([
-        '$ref' => '#/components/links/Foo',
-    ]);
-});
-
 it('inserts requestBody after parameters when parameters are present', function (): void {
     $link = Link::create()
         ->operationId('users.create')

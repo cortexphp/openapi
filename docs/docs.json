@@ -43,7 +43,8 @@
                             "openapi/responses",
                             "openapi/components",
                             "openapi/security",
-                            "openapi/webhooks-and-callbacks"
+                            "openapi/webhooks-and-callbacks",
+                            "openapi/validation-and-output"
                         ]
                     }
                 ]

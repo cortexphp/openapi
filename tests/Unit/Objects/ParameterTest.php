@@ -109,12 +109,6 @@ it('emits style/explode/allowReserved/example', function (): void {
     ]);
 });
 
-it('supports ref() shortcut', function (): void {
-    expect(Parameter::ref('PageSize')->toArray())->toBe([
-        '$ref' => '#/components/parameters/PageSize',
-    ]);
-});
-
 it('required() defaults to true', function (): void {
     expect(Parameter::query('test', Schema::string())->required()->toArray())->toMatchArray([
         'required' => true,

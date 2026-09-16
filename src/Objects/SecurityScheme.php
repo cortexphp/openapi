@@ -72,11 +72,6 @@ final class SecurityScheme implements Serializable, HasExtensionsInterface
         return new self(SecuritySchemeType::MutualTls);
     }
 
-    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
-    {
-        return Reference::securityScheme($name, $summary, $description);
-    }
-
     public function getType(): SecuritySchemeType
     {
         return $this->securitySchemeType;
