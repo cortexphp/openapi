@@ -129,7 +129,7 @@ $components = Components::create()
     ->schema('EventEnvelope', $eventEnvelope)
     ->schema('UserCreatedPayload', Schema::object()
         ->allOf(
-            Schema::object()->ref('#/components/schemas/EventEnvelope'),
+            Schema::typeless()->ref('#/components/schemas/EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('id')->required(),
@@ -139,7 +139,7 @@ $components = Components::create()
         ))
     ->schema('OrderPlacedPayload', Schema::object()
         ->allOf(
-            Schema::object()->ref('#/components/schemas/EventEnvelope'),
+            Schema::typeless()->ref('#/components/schemas/EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('orderId')->required(),

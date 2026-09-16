@@ -6,7 +6,7 @@ icon: 'file-down'
 
 ## Response
 
-`Response` describes a single HTTP status code outcome. Pass one or more `Response` objects to `Operation::responses()` — they are keyed from `getStatusCode()`. To attach a reusable `$ref`, use `->response()` with an explicit status key (`Response::ref()` returns a `Reference`, which `responses()` does not accept):
+`Response` describes a single HTTP status code outcome. Pass one or more of them to `Operation::responses()` and each is keyed from its own status code. References carry no status code, so attach those with `->response()`:
 
 ```php
 use Cortex\OpenApi\Objects\Response;
@@ -19,7 +19,7 @@ Operation::get()
         Response::notFound()->json(Reference::schema('Error')),
     );
 
-// Reusable component responses — status code is the first argument
+// A reusable component response — the status code is the first argument
 Operation::get()
     ->responses(Response::ok()->json(Reference::schema('User')))
     ->response(404, Response::ref('NotFound'));

@@ -37,7 +37,7 @@ Components supports ten registries, each addressable by its own `$ref` path:
 
 ## Schemas
 
-Register any `cortexphp/json-schema` schema or raw array by name. Constructor titles on the schema (`Schema::object('User')`) are stripped when the document is serialized; the component *key* (`'User'`) is what `$ref` pointers use. Call `->title()` only when you want a JSON Schema `title` that differs from that constructor name — see [Introduction](/openapi/introduction).
+Register any `cortexphp/json-schema` schema or raw array by name. The component key (`'User'`) is what `$ref` pointers use, so there is no need to name the schema itself — see [how schemas are embedded](/openapi/introduction).
 
 ```php
 use Cortex\JsonSchema\Schema;
@@ -61,7 +61,7 @@ $components = Components::create()
     ));
 ```
 
-Reference schemas anywhere with typed `Reference` shortcuts. `Reference` is an OpenAPI object — pass it into schema *slots* (`MediaType`, `Parameter`, `Header`, `Components::schema()`), not into `cortexphp/json-schema` composition methods such as `allOf()` / `items()` / `properties()`:
+Reference schemas anywhere with typed `Reference` shortcuts:
 
 ```php
 use Cortex\OpenApi\Objects\Reference;
@@ -72,9 +72,9 @@ MediaType::json(Reference::schema('User'))
 // In a Parameter schema slot
 Parameter::query('filter', Reference::schema('Filter'))
 
-// Inside a JsonSchema (allOf/oneOf/anyOf) use ->ref() on a schema, not Reference
+// Composing inside a schema — use the JSON Schema builder's own ref()
 Schema::object()->allOf(
-    Schema::object()->ref('#/components/schemas/BaseEntity'),
+    Schema::typeless()->ref('#/components/schemas/BaseEntity'),
     Schema::object()->properties(Schema::string('title')),
 )
 ```
