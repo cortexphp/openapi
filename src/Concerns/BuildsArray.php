@@ -96,9 +96,9 @@ trait BuildsArray
     /**
      * $schema must not appear outside the root of a schema resource (JSON Schema
      * 2020-12 core, 8.1.1), and the builder cannot produce a nested resource root, so
-     * every nested occurrence is invalid. Some cortexphp/json-schema versions emit it
-     * anyway for items and contains. A raw array schema is left alone, which is the
-     * way to declare a dialect deliberately.
+     * every nested occurrence is invalid. cortexphp/json-schema emits one anyway for
+     * contains as of 2.0. A raw array schema is left alone, which is the way to
+     * declare a dialect deliberately.
      *
      * @param array<array-key, mixed> $schema
      *

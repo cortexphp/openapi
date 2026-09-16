@@ -247,13 +247,10 @@ it('strips a JsonSchema title that merely restates the constructor argument', fu
     ]);
 });
 
-it('strips $schema from nested item schemas', function (): void {
+it('emits no $schema in a nested item schema', function (): void {
     $arraySchema = Schema::array()->items(Schema::object()->properties(Schema::string('name')));
 
-    // Reference: cortexphp/json-schema serializes items itself and includes the URI.
-    expect($arraySchema->toArray()['items'])->toHaveKey('$schema');
-
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => $arraySchema,
     ]);
 
@@ -272,22 +269,25 @@ it('strips $schema from nested item schemas', function (): void {
     ]);
 });
 
-it('strips $schema from a nested contains schema', function (): void {
+it('emits no $schema in a nested contains schema', function (): void {
     $arraySchema = Schema::array()->contains(Schema::string());
 
-    expect($arraySchema->toArray()['contains'])->toHaveKey('$schema');
-
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => $arraySchema,
     ]);
 
-    expect($out['schema']['contains'])->toBe([
-        'type' => 'string',
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'array',
+            'contains' => [
+                'type' => 'string',
+            ],
+        ],
     ]);
 });
 
-it('strips $schema from deeply nested schemas', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+it('emits no $schema at any depth', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => Schema::array()->items(
             Schema::object()->properties(
                 Schema::array('tags')->items(Schema::string()),
@@ -301,20 +301,37 @@ it('strips $schema from deeply nested schemas', function (): void {
 });
 
 it('keeps a property that is itself named $schema', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => Schema::object()->properties(Schema::string('$schema'), Schema::string('id')),
     ]);
 
-    expect($out['schema']['properties'])->toHaveKeys(['$schema', 'id']);
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            'properties' => [
+                '$schema' => [
+                    'type' => 'string',
+                ],
+                'id' => [
+                    'type' => 'string',
+                ],
+            ],
+        ],
+    ]);
 });
 
 it('leaves $schema in a raw array schema untouched', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => [
             'type' => 'object',
             '$schema' => 'https://example.test/dialect',
         ],
     ]);
 
-    expect($out['schema'])->toHaveKey('$schema', 'https://example.test/dialect');
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            '$schema' => 'https://example.test/dialect',
+        ],
+    ]);
 });
