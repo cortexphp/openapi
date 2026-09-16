@@ -35,6 +35,8 @@ final class Response implements Serializable, HasExtensionsInterface
 
     private ?string $description;
 
+    private ?Reference $reference = null;
+
     /**
      * @var array<string, Header|Reference>
      */
@@ -131,6 +133,20 @@ final class Response implements Serializable, HasExtensionsInterface
         return Reference::response($name, $summary, $description);
     }
 
+    /**
+     * Answer this status code with a reusable response from Components.
+     *
+     * Unlike the static ref(), this keeps the status code, so the result can go straight
+     * into Operation::responses(). The document carries the $ref alone — a Reference Object
+     * has no room for the fields set on this response.
+     */
+    public function refTo(string $name, ?string $summary = null, ?string $description = null): self
+    {
+        $this->reference = Reference::response($name, $summary, $description);
+
+        return $this;
+    }
+
     public function getStatusCode(): string
     {
         return $this->statusCode;
@@ -203,6 +219,10 @@ final class Response implements Serializable, HasExtensionsInterface
      */
     public function toArray(): array
     {
+        if ($this->reference instanceof Reference) {
+            return $this->reference->toArray();
+        }
+
         return $this->buildArray([
             'description' => $this->description,
             'headers' => $this->headers,

@@ -138,7 +138,7 @@ Operation::get()
 
 ### Attaching Responses
 
-`responses()` takes `Response` objects and keys them from their own status code, so you rarely repeat yourself. A `$ref` has no status code of its own, so pass those to `response()` with an explicit key:
+`responses()` takes `Response` objects and keys them from their own status code, so you rarely repeat yourself. Point a status code at a reusable response with `->refTo()`:
 
 ```php
 use Cortex\OpenApi\Objects\Response;
@@ -147,12 +147,17 @@ use Cortex\OpenApi\Objects\Reference;
 Operation::get()
     ->responses(
         Response::ok()->json(Reference::schema('Article')),
-    )
-    ->response(404, Response::ref('NotFound'))
-    ->response(401, Reference::response('Unauthorized'));
+        Response::notFound()->refTo('NotFound'),
+    );
 ```
 
-`responses()` replaces the whole map, so call it first and add any references with `response()` afterwards.
+`response()` sets a single status key, which is useful for a code with no named constructor or when adding to an existing map — `responses()` replaces the map wholesale:
+
+```php
+Operation::get()
+    ->responses(Response::ok()->json(Reference::schema('Article')))
+    ->response(418, Reference::response('Teapot'));
+```
 
 See [Responses](/openapi/responses) for headers, links, and reusable response components.
 

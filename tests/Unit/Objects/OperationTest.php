@@ -153,6 +153,22 @@ it('responses() accepts only Response objects', function (): void {
     expect($operation->toArray()['responses'])->toHaveKeys(['200', '404']);
 });
 
+it('responses() accepts a referenced response and keys it by status', function (): void {
+    $operation = Operation::get()->responses(
+        Response::ok(),
+        Response::notFound()->refTo('NotFound'),
+    );
+
+    expect($operation->toArray()['responses'])->toBe([
+        '200' => [
+            'description' => 'OK',
+        ],
+        '404' => [
+            '$ref' => '#/components/responses/NotFound',
+        ],
+    ]);
+});
+
 it('adds a response by explicit status key, accepting Response or Reference', function (): void {
     $operation = Operation::get()
         ->response('200', Response::ok())

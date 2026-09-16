@@ -86,6 +86,36 @@ it('supports ref() shortcut', function (): void {
     ]);
 });
 
+it('refTo() serializes to the reference alone', function (): void {
+    expect(Response::notFound()->refTo('NotFound')->toArray())->toBe([
+        '$ref' => '#/components/responses/NotFound',
+    ]);
+});
+
+it('refTo() keeps the status code so responses() can key it', function (): void {
+    expect(Response::notFound()->refTo('NotFound')->getStatusCode())->toBe('404');
+});
+
+it('refTo() carries summary and description onto the reference', function (): void {
+    expect(Response::unauthorized()->refTo('Unauthorized', 'Auth failed', 'Token missing or expired')->toArray())
+        ->toBe([
+            '$ref' => '#/components/responses/Unauthorized',
+            'summary' => 'Auth failed',
+            'description' => 'Token missing or expired',
+        ]);
+});
+
+it('refTo() replaces any fields set on the response itself', function (): void {
+    $response = Response::notFound()
+        ->description('Locally described')
+        ->json(Schema::object())
+        ->refTo('NotFound');
+
+    expect($response->toArray())->toBe([
+        '$ref' => '#/components/responses/NotFound',
+    ]);
+});
+
 it('adds headers one at a time with header()', function (): void {
     $response = Response::ok()
         ->header('X-RateLimit-Limit', Header::create()->schema(Schema::integer()))

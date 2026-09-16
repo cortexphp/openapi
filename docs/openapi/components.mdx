@@ -153,15 +153,15 @@ $components = Components::create()
     );
 ```
 
-Reference them from operations with `Response::ref()`. A reference carries no status code, so pass it to `response()` along with the code it answers:
+Reference them from operations with `->refTo()`, which keeps the status code from the named constructor:
 
 ```php
 Operation::get()
     ->responses(
         Response::ok()->json(Reference::schema('User')),
-    )
-    ->response(404, Response::ref('NotFound'))
-    ->response(401, Response::ref('Unauthorized'));
+        Response::notFound()->refTo('NotFound'),
+        Response::unauthorized()->refTo('Unauthorized'),
+    );
 ```
 
 ## Request Bodies
