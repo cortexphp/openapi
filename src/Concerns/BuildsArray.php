@@ -94,9 +94,11 @@ trait BuildsArray
     }
 
     /**
-     * Nested schemas built by cortexphp/json-schema (items, additionalProperties, …)
-     * are serialized by that package and can still carry the $schema URI. An OpenAPI
-     * document embeds schemas inline, so drop it at every depth.
+     * $schema must not appear outside the root of a schema resource (JSON Schema
+     * 2020-12 core, 8.1.1), and the builder cannot produce a nested resource root, so
+     * every nested occurrence is invalid. Some cortexphp/json-schema versions emit it
+     * anyway for items and contains. A raw array schema is left alone, which is the
+     * way to declare a dialect deliberately.
      *
      * @param array<array-key, mixed> $schema
      *

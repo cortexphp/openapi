@@ -272,6 +272,20 @@ it('strips $schema from nested item schemas', function (): void {
     ]);
 });
 
+it('strips $schema from a nested contains schema', function (): void {
+    $arraySchema = Schema::array()->contains(Schema::string());
+
+    expect($arraySchema->toArray()['contains'])->toHaveKey('$schema');
+
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => $arraySchema,
+    ]);
+
+    expect($out['schema']['contains'])->toBe([
+        'type' => 'string',
+    ]);
+});
+
 it('strips $schema from deeply nested schemas', function (): void {
     $out = (new BuildsArrayFixture())->assemble([
         'schema' => Schema::array()->items(
