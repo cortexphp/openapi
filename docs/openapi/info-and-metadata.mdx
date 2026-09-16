@@ -156,13 +156,13 @@ OpenApi::create()
     );
 ```
 
-`Operation::tags()` accepts tag name strings, `Tag` objects, or a mix. `Tag` values are resolved to `Tag::getName()` — you do not need to call `getName()` yourself:
+Pass the `Tag` objects you already declared, plain name strings, or a mix — the name is taken from the tag for you:
 
 ```php
 $users = Tag::create('users')->description('User account management');
 
-Operation::get()->tags('users', 'payments');
 Operation::get()->tags($users);
+Operation::get()->tags('users', 'payments');
 Operation::get()->tags($users, 'payments');
 ```
 

@@ -153,7 +153,7 @@ $components = Components::create()
     );
 ```
 
-Reference them from operations using `Response::ref()` with `Operation::response()`. `Operation::responses()` only accepts `Response` objects — a `Reference` has no status code of its own:
+Reference them from operations with `Response::ref()`. A reference carries no status code, so pass it to `response()` along with the code it answers:
 
 ```php
 Operation::get()

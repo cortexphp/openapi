@@ -75,7 +75,7 @@ icon: 'rocket'
           ->operations(
               Operation::get()
                   ->operationId('listPets')
-                  ->tags('pets')   // Tag objects also work: Tag::create('pets')
+                  ->tags('pets')
                   ->parameters(
                       Parameter::query('limit', Schema::integer()->minimum(1)->maximum(100))
                           ->description('How many items to return (max 100)'),

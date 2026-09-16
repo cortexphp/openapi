@@ -234,6 +234,10 @@ OpenApi::create();                              // 3.1.0
 OpenApi::create(OpenApiVersion::V3_1_1);        // 3.1.1
 ```
 
-Override the default JSON Schema dialect for Schema Objects with `->jsonSchemaDialect('https://json-schema.org/draft/2020-12/schema')` when you need a document-level `jsonSchemaDialect` field.
+Both versions ship with their official meta-schema bundled, so [validation](/openapi/validation-and-output) works fully offline.
 
-Both versions ship with their official meta-schema bundled — validation works fully offline.
+Schema Objects are read as JSON Schema 2020-12 unless you say otherwise. If your schemas use a different dialect, announce it once on the document:
+
+```php
+OpenApi::create()->jsonSchemaDialect('https://json-schema.org/draft/2020-12/schema');
+```

@@ -67,6 +67,22 @@ Array
 )
 ```
 
+Some spec rules are "at least one of these", and the validator reports every branch it tried. A document with no operations fails like this:
+
+```
+Array
+(
+    [/] => Array
+        (
+            [0] => The required properties (paths) are missing
+            [1] => The required properties (components) are missing
+            [2] => The required properties (webhooks) are missing
+        )
+)
+```
+
+That is one rule, not three: OpenAPI 3.1 requires a document to have at least one of `paths`, `components`, or `webhooks`. Supplying any one of them clears all three lines.
+
 <Tip>
 `ValidationException` extends `OpenApiException`, so you can catch every exception this package throws with a single `catch (OpenApiException $e)`.
 </Tip>
