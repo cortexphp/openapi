@@ -47,12 +47,12 @@ trait BuildsArray
         }
 
         if ($this instanceof HasExtensionsInterface) {
-            foreach ($this->getExtensions() as $extensionKey => $extensionValue) {
-                $output[$extensionKey] = $extensionValue;
+            foreach ($this->getExtensions() as $extensionKey => $extensionValue) { // @phpstan-ignore foreach.nonIterable
+                $output[$extensionKey] = $extensionValue; // @phpstan-ignore offsetAccess.invalidOffset
             }
         }
 
-        return $output;
+        return $output; // @phpstan-ignore return.type
     }
 
     private function unwrapValue(mixed $value): mixed

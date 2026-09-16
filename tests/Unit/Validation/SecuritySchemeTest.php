@@ -36,7 +36,7 @@ it('accepts all security scheme types in components', function (): void {
                 ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('rejects an oauth2 security scheme without flows', function (): void {
@@ -47,7 +47,8 @@ it('rejects an oauth2 security scheme without flows', function (): void {
                 ->securityScheme('oauth2', SecurityScheme::oauth2()),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/components/securitySchemes/oauth2',
         'The required properties (flows) are missing',
     );

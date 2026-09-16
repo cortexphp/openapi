@@ -89,15 +89,17 @@ it('servers() preserves values as a list', function (): void {
         );
 
     $result = $pathItem->toArray();
-    expect($result['servers'])->toBe([
+    $servers = expectArray($result['servers']);
+    expect($servers)->toBe([
         [
             'url' => 'https://api.example.com',
         ],
         [
             'url' => 'https://staging.example.com',
         ],
-    ]);
-    expect(array_is_list($result['servers']))->toBeTrue();
+    ])
+        ->and($servers)
+        ->toBeList();
 });
 
 it('parameters() preserves values as a list', function (): void {
@@ -108,6 +110,9 @@ it('parameters() preserves values as a list', function (): void {
         );
 
     $result = $pathItem->toArray();
-    expect(array_is_list($result['parameters']))->toBeTrue();
-    expect($result['parameters'])->toHaveCount(2);
+    $parameters = expectArray($result['parameters']);
+    expect($parameters)
+        ->toBeList()
+        ->and($parameters)
+        ->toHaveCount(2);
 });

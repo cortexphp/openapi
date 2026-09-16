@@ -8,7 +8,8 @@ use Cortex\OpenApi\Objects\OAuthFlows;
 covers(OAuthFlows::class, OAuthFlow::class);
 
 it('emits nothing by default', function (): void {
-    expect(OAuthFlows::create()->toArray())->toBe([]);
+    expect(OAuthFlows::create()->toArray())
+        ->toBeEmpty();
 });
 
 it('emits all four flows when configured', function (): void {

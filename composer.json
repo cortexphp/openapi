@@ -20,19 +20,22 @@
         }
     ],
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "ext-json": "*",
         "cortexphp/json-schema": "^1.1",
         "opis/json-schema": "^2.4"
     },
     "require-dev": {
-        "pestphp/pest": "^4.1.4",
-        "pestphp/pest-plugin-type-coverage": "^4.0.3",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-mutate": "^5.0.1",
+        "pestphp/pest-plugin-phpstan": "^5.0",
+        "pestphp/pest-plugin-rector": "^5.0",
+        "pestphp/pest-plugin-type-coverage": "^5.0",
         "phpstan/phpstan": "^2.1.32",
         "phpstan/phpstan-strict-rules": "^2.0",
         "rector/rector": "^2.2",
         "symfony/yaml": "^6.0 || ^7.0",
-        "symplify/easy-coding-standard": "13.2.3"
+        "symplify/easy-coding-standard": "~13.1.0"
     },
     "suggest": {
         "symfony/yaml": "Required for OpenApi::toYaml() output (^6.0 || ^7.0)."
@@ -51,7 +54,7 @@
         ]
     },
     "scripts": {
-        "test": "pest --no-coverage",
+        "test": "pest --parallel",
         "ecs": "ecs check --fix",
         "ecs:check": "ecs check",
         "rector": "rector process",

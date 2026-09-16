@@ -23,7 +23,8 @@ it('rejects a document with a bad response status key', function (): void {
             ),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/paths/~1ping/get/responses',
         'Unevaluated object properties not allowed: 99',
     );
@@ -42,7 +43,7 @@ it('accepts wildcard and default response keys', function (): void {
             ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('rejects a response object missing its description', function (): void {
@@ -55,7 +56,8 @@ it('rejects a response object missing its description', function (): void {
             ),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/paths/~1ping/get/responses/503',
         'The data (array) must match the type: object',
     );
@@ -74,7 +76,7 @@ it('accepts response links and response headers', function (): void {
             ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('rejects a link with neither operationRef nor operationId', function (): void {
@@ -88,7 +90,8 @@ it('rejects a link with neither operationRef nor operationId', function (): void
             ),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/paths/~1ping/get/responses/200/links/Empty',
         'The data (array) must match the type: object',
     );

@@ -19,5 +19,6 @@ it('builds a scheme with no scopes', function (): void {
 });
 
 it('builds an empty requirement (public access)', function (): void {
-    expect(SecurityRequirement::public()->toArray())->toBe([]);
+    expect(SecurityRequirement::public()->toArray())
+        ->toBeEmpty();
 });
