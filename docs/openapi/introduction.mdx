@@ -154,7 +154,7 @@ MediaType::json($addressSchema);
 Parameter::query('filter', Schema::string()->enum(['active', 'archived']));
 ```
 
-When serializing, the sibling schema object is never mutated. Embedding copies it through `toArray()` and always drops the JSON Schema `$schema` URI (including on nested `items` / `properties`). Constructor and factory titles — the string passed to `Schema::object('Pet')` or `Schema::string('id')` — are also stripped, because those are builder-assigned names rather than schema metadata.
+When serializing, the sibling schema object is never mutated. Embedding copies the schema you pass into a slot through `toArray()` and always drops that object's JSON Schema `$schema` URI. Constructor and factory titles — the string passed to `Schema::object('Pet')` or `Schema::string('id')` — are also stripped, because those are builder-assigned names rather than schema metadata.
 
 A title set with `->title()` is **kept** when it differs from that constructor argument (`getTitle() !== getInitialTitle()`). That includes calling `->title()` on a schema that had no constructor name:
 
@@ -181,20 +181,28 @@ Parameter::query('when', Schema::string('IsoDateTime')->title('IsoDateTime'))->t
 ```
 
 <Tip>
-`properties()` keys off each child schema's constructor argument (or `getInitialTitle()`). Use `Schema::string('email')`, not an untitled `Schema::string()`, unless you name the field with `->property('email', Schema::string())`. Nested `items()` schemas also omit `$schema` when the parent is embedded.
+`properties()` keys off each child schema's constructor argument (`Schema::string('email')`). An untitled `Schema::string()` cannot be used there. Nested `properties` omit `$schema` and drop a `title` that merely repeats the property name. Nested `items()`, however, are serialized by `cortexphp/json-schema` itself and currently still include `$schema` (and a constructor title if you passed one). Prefer `Schema::array()->items(Schema::string())` over a named item schema, or pass a raw array when you need the nested `$schema` omitted.
 </Tip>
 
-OpenAPI-only schema keywords such as `discriminator` and `xml` are not modeled on the JSON Schema builder. Attach them with `->keyword()`, passing a plain array (or `->toArray()` from `Discriminator` / `Xml`):
+OpenAPI-only Schema Object fields such as `discriminator` and `xml` are not methods on the JSON Schema builder. Schema slots also accept a plain array, so you can merge those fields in by hand:
 
 ```php
 use Cortex\OpenApi\Objects\Discriminator;
 use Cortex\OpenApi\Objects\Xml;
+use Cortex\OpenApi\Objects\MediaType;
 
-Schema::object()->properties(
-    Schema::string('petType')->required(),
-)->keyword('discriminator', Discriminator::create('petType')->toArray());
+MediaType::json([
+    'type' => 'object',
+    'properties' => [
+        'petType' => ['type' => 'string'],
+    ],
+    'discriminator' => Discriminator::create('petType')->toArray(),
+]);
 
-Schema::string('item')->keyword('xml', Xml::create()->name('item')->wrapped()->toArray());
+MediaType::xml([
+    'type' => 'string',
+    'xml' => Xml::create()->name('item')->wrapped()->toArray(),
+]);
 ```
 
 `Reference` objects belong in OpenAPI schema *slots* (`MediaType`, `Parameter`, `Header`, `Components::schema()`). They are not `JsonSchema` instances, so they cannot be passed to `->allOf()`, `->properties()`, or `->items()`. Compose `$ref` inside a schema with `Schema::object()->ref('#/components/schemas/User')` (or `Schema::typeless()->ref(...)`).
