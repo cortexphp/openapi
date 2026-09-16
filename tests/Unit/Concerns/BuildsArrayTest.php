@@ -335,3 +335,48 @@ it('leaves $schema in a raw array schema untouched', function (): void {
         ],
     ]);
 });
+
+it('leaves $schema inside default and examples instance values', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => Schema::object()
+            ->default([
+                '$schema' => 'literal',
+                'keep' => true,
+            ])
+            ->examples([[
+                '$schema' => 'x',
+            ]]),
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            'default' => [
+                '$schema' => 'literal',
+                'keep' => true,
+            ],
+            'examples' => [
+                [
+                    '$schema' => 'x',
+                ],
+            ],
+        ],
+    ]);
+});
+
+it('strips $schema from schemas inside allOf', function (): void {
+    $out = new BuildsArrayFixture()->assemble([
+        'schema' => Schema::object()->allOf(Schema::string()),
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'object',
+            'allOf' => [
+                [
+                    'type' => 'string',
+                ],
+            ],
+        ],
+    ]);
+});

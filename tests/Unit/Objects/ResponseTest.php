@@ -85,17 +85,17 @@ it('emits content, headers, and links', function (): void {
     ]);
 });
 
-it('refTo() serializes to the reference alone', function (): void {
+it('ref() serializes to the reference alone', function (): void {
     expect(Response::notFound()->ref('NotFound')->toArray())->toBe([
         '$ref' => '#/components/responses/NotFound',
     ]);
 });
 
-it('refTo() keeps the status code so responses() can key it', function (): void {
+it('ref() keeps the status code so responses() can key it', function (): void {
     expect(Response::notFound()->ref('NotFound')->getStatusCode())->toBe('404');
 });
 
-it('refTo() carries summary and description onto the reference', function (): void {
+it('ref() carries summary and description onto the reference', function (): void {
     expect(Response::unauthorized()->ref('Unauthorized', 'Auth failed', 'Token missing or expired')->toArray())
         ->toBe([
             '$ref' => '#/components/responses/Unauthorized',
@@ -104,7 +104,7 @@ it('refTo() carries summary and description onto the reference', function (): vo
         ]);
 });
 
-it('refTo() replaces any fields set on the response itself', function (): void {
+it('ref() replaces any fields set on the response itself', function (): void {
     $response = Response::notFound()
         ->description('Locally described')
         ->json(Schema::object())
