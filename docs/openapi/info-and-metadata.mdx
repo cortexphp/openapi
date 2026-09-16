@@ -137,7 +137,7 @@ PathItem::create('/uploads')
 
 ## Tags
 
-Tags group operations together in documentation renderers. Declare them at the document level with `Tag`, then reference them by name string inside each operation.
+Tags group operations together in documentation renderers. Declare them at the document level with `Tag`, then attach them on each operation with `Operation::tags()`.
 
 ```php
 use Cortex\OpenApi\Objects\Tag;
@@ -156,10 +156,14 @@ OpenApi::create()
     );
 ```
 
-Reference a tag in an operation by its name string:
+`Operation::tags()` accepts tag name strings, `Tag` objects, or a mix. `Tag` values are resolved to `Tag::getName()` — you do not need to call `getName()` yourself:
 
 ```php
-Operation::get()->tags('users', 'payments')
+$users = Tag::create('users')->description('User account management');
+
+Operation::get()->tags('users', 'payments');
+Operation::get()->tags($users);
+Operation::get()->tags($users, 'payments');
 ```
 
 <Tip>

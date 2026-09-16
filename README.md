@@ -44,7 +44,7 @@ $userSchema = Schema::object('User')->properties(
 );
 
 $openApi = OpenApi::create()
-    ->info(Info::create()->title('Example API')->version('1.0.0'))
+    ->info(Info::create('Example API', '1.0.0'))
     ->tags(Tag::create('Users')->description('User endpoints'))
     ->components(Components::create()->schema('User', $userSchema))
     ->paths(

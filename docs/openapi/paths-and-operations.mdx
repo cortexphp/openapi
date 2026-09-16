@@ -94,12 +94,26 @@ Operation::trace()
 ```php Common fields
 Operation::get()
     ->operationId('articles.show')      // unique ID used by tooling and links
-    ->tags('articles', 'public')        // groups the operation in docs
+    ->tags('articles', 'public')        // Tag objects or name strings
     ->summary('Get an article')         // short label
     ->description('Returns a single article by its slug.')
     ->deprecated()                      // marks operation as deprecated
 ```
 </CodeGroup>
+
+### Tags
+
+`Operation::tags()` accepts name strings, `Tag` objects, or both. Document-level `Tag` objects are serialized as `{ name, description, ... }`; on an operation they become the name string only:
+
+```php
+use Cortex\OpenApi\Objects\Tag;
+
+$articles = Tag::create('articles')->description('Publishing');
+
+Operation::get()->tags('articles', 'public');
+Operation::get()->tags($articles);
+Operation::get()->tags($articles, 'public');
+```
 
 ### operationId
 
@@ -121,6 +135,23 @@ Operation::get()
     ->deprecated()
     ->description('Deprecated. Use /v2/items instead.')
 ```
+
+### Attaching Responses
+
+`Operation::responses()` accepts `Response` objects only and keys them from `Response::getStatusCode()` (`200`, `404`, `default`, …). To attach a `$ref` to a reusable response, use `->response()` with an explicit status key — `Response::ref()` returns a `Reference`, which cannot be passed to `responses()`:
+
+```php
+Operation::get()
+    ->responses(
+        Response::ok()->json(Reference::schema('Article')),
+    )
+    ->response(404, Response::ref('NotFound'))
+    ->response(401, Reference::response('Unauthorized'));
+```
+
+`responses()` replaces the map; call `response()` afterwards to add references without wiping the named constructors.
+
+See [Responses](/openapi/responses) for headers, links, and reusable response components.
 
 ## Parameters
 

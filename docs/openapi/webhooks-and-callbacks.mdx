@@ -10,6 +10,7 @@ Webhooks are HTTP requests that **your server sends** to a subscriber-provided U
 
 ```php
 use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Objects\Info;
 use Cortex\OpenApi\Objects\PathItem;
 use Cortex\OpenApi\Objects\Operation;
 use Cortex\OpenApi\Objects\Response;
@@ -128,7 +129,7 @@ $components = Components::create()
     ->schema('EventEnvelope', $eventEnvelope)
     ->schema('UserCreatedPayload', Schema::object()
         ->allOf(
-            Reference::schema('EventEnvelope'),
+            Schema::object()->ref('#/components/schemas/EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('id')->required(),
@@ -138,7 +139,7 @@ $components = Components::create()
         ))
     ->schema('OrderPlacedPayload', Schema::object()
         ->allOf(
-            Reference::schema('EventEnvelope'),
+            Schema::object()->ref('#/components/schemas/EventEnvelope'),
             Schema::object()->properties(
                 Schema::object('data')->properties(
                     Schema::integer('orderId')->required(),
@@ -204,6 +205,19 @@ Operation::post()
                 ),
             ),
     ]);
+```
+
+`Operation::callback()` adds entries one at a time, the same way `OpenApi::webhook()` does:
+
+```php
+Operation::post()
+    ->callback('onEvent', Callback::ref('EventWebhook'))
+    ->callback('onError', Callback::create()->expression(
+        '{$request.body#/errorUrl}',
+        PathItem::create('')->operations(
+            Operation::post()->responses(Response::ok()),
+        ),
+    ));
 ```
 
 ### Runtime Expressions

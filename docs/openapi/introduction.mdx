@@ -29,14 +29,14 @@ OpenAPI 3.1 aligns fully with **JSON Schema 2020-12**, which means every schema 
   </Card>
   <Card
     title="Built-in Validation"
-    href="/openapi/validation-and-output"
+    href="/openapi/quickstart"
     icon="shield-check"
   >
     Validate your document against the official OpenAPI 3.1 meta-schema before shipping, catching structural errors at build time.
   </Card>
   <Card
     title="Multiple Output Formats"
-    href="/openapi/validation-and-output"
+    href="/openapi/quickstart"
     icon="file-output"
   >
     Serialize to PHP array, JSON, or YAML. JSON is built-in; YAML requires `symfony/yaml` as an optional runtime dependency.
@@ -154,17 +154,70 @@ MediaType::json($addressSchema);
 Parameter::query('filter', Schema::string()->enum(['active', 'archived']));
 ```
 
-When serializing, `$schema` URI and `title` are automatically stripped from inline schemas per the OpenAPI spec — the sibling schema object is never mutated.
+When serializing, the sibling schema object is never mutated. Embedding copies it through `toArray()` and always drops the JSON Schema `$schema` URI (including on nested `items` / `properties`). Constructor and factory titles — the string passed to `Schema::object('Pet')` or `Schema::string('id')` — are also stripped, because those are builder-assigned names rather than schema metadata.
+
+A title set with `->title()` is **kept** when it differs from that constructor argument (`getTitle() !== getInitialTitle()`). That includes calling `->title()` on a schema that had no constructor name:
+
+```php
+use Cortex\JsonSchema\Schema;
+use Cortex\OpenApi\Objects\MediaType;
+use Cortex\OpenApi\Objects\Parameter;
+
+// Constructor name only — title is stripped
+MediaType::json(Schema::object('Consult'))->toArray();
+// schema: { "type": "object" }
+
+// Deliberate title — kept
+MediaType::json(Schema::object('Consult')->title('consults'))->toArray();
+// schema: { "type": "object", "title": "consults" }
+
+// title() with no constructor name — kept
+Parameter::query('when', Schema::string()->title('IsoDateTime'))->toArray();
+// schema: { "type": "string", "title": "IsoDateTime" }
+
+// Restating the constructor name is still treated as a builder name — stripped
+Parameter::query('when', Schema::string('IsoDateTime')->title('IsoDateTime'))->toArray();
+// schema: { "type": "string" }
+```
+
+<Tip>
+`properties()` keys off each child schema's constructor argument (or `getInitialTitle()`). Use `Schema::string('email')`, not an untitled `Schema::string()`, unless you name the field with `->property('email', Schema::string())`. Nested `items()` schemas also omit `$schema` when the parent is embedded.
+</Tip>
+
+OpenAPI-only schema keywords such as `discriminator` and `xml` are not modeled on the JSON Schema builder. Attach them with `->keyword()`, passing a plain array (or `->toArray()` from `Discriminator` / `Xml`):
+
+```php
+use Cortex\OpenApi\Objects\Discriminator;
+use Cortex\OpenApi\Objects\Xml;
+
+Schema::object()->properties(
+    Schema::string('petType')->required(),
+)->keyword('discriminator', Discriminator::create('petType')->toArray());
+
+Schema::string('item')->keyword('xml', Xml::create()->name('item')->wrapped()->toArray());
+```
+
+`Reference` objects belong in OpenAPI schema *slots* (`MediaType`, `Parameter`, `Header`, `Components::schema()`). They are not `JsonSchema` instances, so they cannot be passed to `->allOf()`, `->properties()`, or `->items()`. Compose `$ref` inside a schema with `Schema::object()->ref('#/components/schemas/User')` (or `Schema::typeless()->ref(...)`).
 
 ## OpenAPI Version Support
 
 <Info>
-The default version is **3.1.0**. Use `OpenApi::v311()` to target the 3.1.1 revision, which includes clarifications and minor fixes.
+The default version is **3.1.0**. Pass `OpenApiVersion::V3_1_1` to target the 3.1.1 revision, which includes clarifications and minor fixes.
 </Info>
 
-| Version | Status | Named Constructor |
-|---------|--------|-------------------|
-| 3.1.0 | Supported | `OpenApi::create()` or `OpenApi::v310()` |
-| 3.1.1 | Supported | `OpenApi::v311()` |
+| Version | Status | Constructor |
+|---------|--------|-------------|
+| 3.1.0 | Supported | `OpenApi::create()` or `OpenApi::create(OpenApiVersion::V3_1_0)` |
+| 3.1.1 | Supported | `OpenApi::create(OpenApiVersion::V3_1_1)` |
+
+```php
+use Cortex\OpenApi\OpenApi;
+use Cortex\OpenApi\Enums\OpenApiVersion;
+
+OpenApi::create();                              // 3.1.0
+OpenApi::create(OpenApiVersion::V3_1_1);        // 3.1.1
+```
+
+Override the default JSON Schema dialect for Schema Objects with `->jsonSchemaDialect('https://json-schema.org/draft/2020-12/schema')` when you need a document-level `jsonSchemaDialect` field.
 
 Both versions ship with their official meta-schema bundled — validation works fully offline.

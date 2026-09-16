@@ -75,7 +75,7 @@ icon: 'rocket'
           ->operations(
               Operation::get()
                   ->operationId('listPets')
-                  ->tags('pets')
+                  ->tags('pets')   // Tag objects also work: Tag::create('pets')
                   ->parameters(
                       Parameter::query('limit', Schema::integer()->minimum(1)->maximum(100))
                           ->description('How many items to return (max 100)'),
@@ -273,6 +273,7 @@ Reference::requestBody('CreateUser')  // #/components/requestBodies/CreateUser
 Reference::header('RateLimit')        // #/components/headers/RateLimit
 Reference::securityScheme('OAuth2')   // #/components/securitySchemes/OAuth2
 Reference::link('GetPet')             // #/components/links/GetPet
+Reference::example('AdminUser')       // #/components/examples/AdminUser
 Reference::callback('EventWebhook')   // #/components/callbacks/EventWebhook
 Reference::pathItem('LegacyPets')     // #/components/pathItems/LegacyPets
 
@@ -280,9 +281,10 @@ Reference::pathItem('LegacyPets')     // #/components/pathItems/LegacyPets
 Reference::to('#/components/schemas/Pet')
 
 // Shortcut on the target class (equivalent, and communicates intent)
-Response::ref('NotFound')
+Response::ref('NotFound')             // pass to Operation::response($status, ...)
 Parameter::ref('PetId')
 RequestBody::ref('CreateUser')
+Example::ref('AdminUser')
 ```
 
 ## Vendor Extensions
