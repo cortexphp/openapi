@@ -68,7 +68,9 @@ trait BuildsArray
             $title = $value->getTitle();
             $includeTitle = $title !== null && $title !== $value->getInitialTitle();
 
-            return $value->toArray(includeSchemaRef: false, includeTitle: $includeTitle);
+            return $this->stripSchemaRef(
+                $value->toArray(includeSchemaRef: false, includeTitle: $includeTitle),
+            );
         }
 
         if (is_array($value)) {
@@ -89,5 +91,45 @@ trait BuildsArray
         }
 
         return $value;
+    }
+
+    /**
+     * Nested schemas built by cortexphp/json-schema (items, additionalProperties, …)
+     * are serialized by that package and can still carry the $schema URI. An OpenAPI
+     * document embeds schemas inline, so drop it at every depth.
+     *
+     * @param array<array-key, mixed> $schema
+     *
+     * @return array<array-key, mixed>
+     */
+    private function stripSchemaRef(array $schema): array
+    {
+        // Keys holding a map of subschemas, where the map keys are user-chosen names
+        // (a property may legitimately be named "$schema") rather than keywords.
+        $namedSubschemaKeys = ['properties', 'patternProperties', 'dependentSchemas', '$defs', 'definitions'];
+
+        unset($schema['$schema']);
+
+        foreach ($schema as $key => $value) {
+            if (! is_array($value)) {
+                continue;
+            }
+
+            if (in_array($key, $namedSubschemaKeys, true)) {
+                foreach ($value as $name => $subschema) {
+                    if (is_array($subschema)) {
+                        $value[$name] = $this->stripSchemaRef($subschema);
+                    }
+                }
+
+                $schema[$key] = $value;
+
+                continue;
+            }
+
+            $schema[$key] = $this->stripSchemaRef($value);
+        }
+
+        return $schema;
     }
 }

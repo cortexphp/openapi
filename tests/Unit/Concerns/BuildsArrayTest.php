@@ -246,3 +246,61 @@ it('strips a JsonSchema title that merely restates the constructor argument', fu
         ],
     ]);
 });
+
+it('strips $schema from nested item schemas', function (): void {
+    $arraySchema = Schema::array()->items(Schema::object()->properties(Schema::string('name')));
+
+    // Reference: cortexphp/json-schema serializes items itself and includes the URI.
+    expect($arraySchema->toArray()['items'])->toHaveKey('$schema');
+
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => $arraySchema,
+    ]);
+
+    expect($out)->toBe([
+        'schema' => [
+            'type' => 'array',
+            'items' => [
+                'type' => 'object',
+                'properties' => [
+                    'name' => [
+                        'type' => 'string',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+});
+
+it('strips $schema from deeply nested schemas', function (): void {
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => Schema::array()->items(
+            Schema::object()->properties(
+                Schema::array('tags')->items(Schema::string()),
+            ),
+        ),
+    ]);
+
+    $json = json_encode($out, JSON_THROW_ON_ERROR);
+
+    expect($json)->not->toContain('$schema');
+});
+
+it('keeps a property that is itself named $schema', function (): void {
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => Schema::object()->properties(Schema::string('$schema'), Schema::string('id')),
+    ]);
+
+    expect($out['schema']['properties'])->toHaveKeys(['$schema', 'id']);
+});
+
+it('leaves $schema in a raw array schema untouched', function (): void {
+    $out = (new BuildsArrayFixture())->assemble([
+        'schema' => [
+            'type' => 'object',
+            '$schema' => 'https://example.test/dialect',
+        ],
+    ]);
+
+    expect($out['schema'])->toHaveKey('$schema', 'https://example.test/dialect');
+});
