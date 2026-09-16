@@ -156,7 +156,7 @@ Operation::get()
 ```php
 Operation::get()
     ->responses(Response::ok()->json(Reference::schema('Article')))
-    ->response(418, Reference::response('Teapot'));
+    ->response(418, Response::ref('Teapot'));
 ```
 
 See [Responses](/openapi/responses) for headers, links, and reusable response components.
