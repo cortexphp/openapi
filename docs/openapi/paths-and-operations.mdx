@@ -141,6 +141,9 @@ Operation::get()
 `Operation::responses()` accepts `Response` objects only and keys them from `Response::getStatusCode()` (`200`, `404`, `default`, …). To attach a `$ref` to a reusable response, use `->response()` with an explicit status key — `Response::ref()` returns a `Reference`, which cannot be passed to `responses()`:
 
 ```php
+use Cortex\OpenApi\Objects\Response;
+use Cortex\OpenApi\Objects\Reference;
+
 Operation::get()
     ->responses(
         Response::ok()->json(Reference::schema('Article')),

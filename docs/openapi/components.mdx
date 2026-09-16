@@ -72,7 +72,7 @@ MediaType::json(Reference::schema('User'))
 // In a Parameter schema slot
 Parameter::query('filter', Reference::schema('Filter'))
 
-// Inside a JsonSchema (allOf/oneOf/anyOf) use Schema::ref(), not Reference
+// Inside a JsonSchema (allOf/oneOf/anyOf) use ->ref() on a schema, not Reference
 Schema::object()->allOf(
     Schema::object()->ref('#/components/schemas/BaseEntity'),
     Schema::object()->properties(Schema::string('title')),

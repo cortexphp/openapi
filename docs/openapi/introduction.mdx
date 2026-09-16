@@ -181,7 +181,7 @@ Parameter::query('when', Schema::string('IsoDateTime')->title('IsoDateTime'))->t
 ```
 
 <Tip>
-`properties()` keys off each child schema's constructor argument (`Schema::string('email')`). An untitled `Schema::string()` cannot be used there. Nested `properties` omit `$schema` and drop a `title` that merely repeats the property name. Nested `items()`, however, are serialized by `cortexphp/json-schema` itself and currently still include `$schema` (and a constructor title if you passed one). Prefer `Schema::array()->items(Schema::string())` over a named item schema, or pass a raw array when you need the nested `$schema` omitted.
+`properties()` keys off each child schema's constructor argument (`Schema::string('email')`), or `->title()` if there was no constructor name. A completely untitled `Schema::string()` cannot be used there. Nested `properties` omit `$schema` and drop a `title` that merely repeats the property name. Nested `items()`, however, are serialized by `cortexphp/json-schema` itself and currently still include `$schema` (and a constructor title if you passed one). Prefer `Schema::array()->items(Schema::string())` over a named item schema, or pass a raw array when you need the nested `$schema` omitted.
 </Tip>
 
 OpenAPI-only Schema Object fields such as `discriminator` and `xml` are not methods on the JSON Schema builder. Schema slots also accept a plain array, so you can merge those fields in by hand:

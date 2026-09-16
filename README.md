@@ -11,7 +11,7 @@ A modern, fluent builder for [OpenAPI 3.1](https://spec.openapis.org/oas/v3.1.0)
 - Schemas via `cortexphp/json-schema` — no parallel schema DSL to learn
 - Vendor extensions (`x-*`) and `$ref` on every object
 - JSON and YAML output (YAML via optional `symfony/yaml`)
-- Meta-schema validation proxied through the existing `cortex/json-schema` pipeline
+- Meta-schema validation against the official OpenAPI 3.1 schemas (bundled, offline)
 
 ## Requirements
 
