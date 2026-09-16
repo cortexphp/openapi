@@ -27,6 +27,7 @@
     },
     "require-dev": {
         "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-mutate": "^5.0.1",
         "pestphp/pest-plugin-phpstan": "^5.0",
         "pestphp/pest-plugin-rector": "^5.0",
         "pestphp/pest-plugin-type-coverage": "^5.0",
