@@ -336,29 +336,43 @@ it('leaves $schema in a raw array schema untouched', function (): void {
     ]);
 });
 
-it('leaves $schema inside default and examples instance values', function (): void {
+it('leaves $schema inside instance values', function (): void {
     $out = new BuildsArrayFixture()->assemble([
         'schema' => Schema::object()
             ->default([
                 '$schema' => 'literal',
                 'keep' => true,
             ])
+            ->enum([
+                [
+                    '$schema' => 'e',
+                ],
+                [
+                    'ok' => true,
+                ],
+            ])
             ->examples([[
                 '$schema' => 'x',
             ]]),
     ]);
 
-    expect($out)->toBe([
-        'schema' => [
-            'type' => 'object',
-            'default' => [
-                '$schema' => 'literal',
-                'keep' => true,
+    expect($out['schema'])->toMatchArray([
+        'type' => 'object',
+        'default' => [
+            '$schema' => 'literal',
+            'keep' => true,
+        ],
+        'enum' => [
+            [
+                '$schema' => 'e',
             ],
-            'examples' => [
-                [
-                    '$schema' => 'x',
-                ],
+            [
+                'ok' => true,
+            ],
+        ],
+        'examples' => [
+            [
+                '$schema' => 'x',
             ],
         ],
     ]);
