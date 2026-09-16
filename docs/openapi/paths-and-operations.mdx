@@ -149,7 +149,7 @@ Operation::get()
         Response::ok()->json(Reference::schema('Article')),
     )
     ->response(404, Response::ref('NotFound'))
-    ->response(401, Reference::response('Unauthorized'));
+    ->response(401, Response::ref('Unauthorized'));
 ```
 
 `responses()` replaces the whole map, so call it first and add any references with `response()` afterwards.
