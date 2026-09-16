@@ -275,7 +275,7 @@ final class OpenApi implements Serializable, HasExtensionsInterface
                 return;
             }
 
-            $formatted = (new ErrorFormatter())->format($error);
+            $formatted = new ErrorFormatter()->format($error);
 
             throw new ValidationException(
                 'OpenAPI document failed meta-schema validation: ' . json_encode($formatted, JSON_UNESCAPED_SLASHES),

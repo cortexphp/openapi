@@ -20,7 +20,8 @@ it('rejects a license with both identifier and url', function (): void {
         )
         ->components(Components::create()->schema('Empty', Schema::object()));
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/info/license',
         'The data must not match schema',
     );

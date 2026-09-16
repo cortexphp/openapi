@@ -7,7 +7,8 @@ use Cortex\OpenApi\Objects\Xml;
 covers(Xml::class);
 
 it('emits nothing by default', function (): void {
-    expect(Xml::create()->toArray())->toBe([]);
+    expect(Xml::create()->toArray())
+        ->toBeEmpty();
 });
 
 it('emits every field', function (): void {

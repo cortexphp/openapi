@@ -120,8 +120,10 @@ it('toJson supports pretty printing', function (): void {
 });
 
 it('knows its OpenAPI version enum', function (): void {
-    expect(OpenApi::create(OpenApiVersion::V3_1_0)->getVersion())->toBe(OpenApiVersion::V3_1_0);
-    expect(OpenApi::create(OpenApiVersion::V3_1_1)->getVersion())->toBe(OpenApiVersion::V3_1_1);
+    expect(OpenApi::create(OpenApiVersion::V3_1_0)->getVersion())->toBe(OpenApiVersion::V3_1_0)
+        ->and(OpenApi::create(OpenApiVersion::V3_1_1)
+            ->getVersion())
+        ->toBe(OpenApiVersion::V3_1_1);
 });
 
 it('supports vendor extensions at the root', function (): void {
@@ -129,7 +131,8 @@ it('supports vendor extensions at the root', function (): void {
         ->info(Info::create('x', '1'))
         ->x('x-internal', true);
 
-    expect($openApi->toArray()['x-internal'])->toBe(true);
+    expect($openApi->toArray()['x-internal'])
+        ->toBeTrue();
 });
 
 it('path() adds a PathItem or Reference by explicit pattern', function (): void {
@@ -140,12 +143,12 @@ it('path() adds a PathItem or Reference by explicit pattern', function (): void 
         ))
         ->path('/legacy', Reference::pathItem('LegacyUsers'));
 
-    $arr = $openApi->toArray();
-    expect($arr['paths'])->toHaveKey('/users');
-    expect($arr['paths'])->toHaveKey('/legacy');
-    expect($arr['paths']['/legacy'])->toBe([
-        '$ref' => '#/components/pathItems/LegacyUsers',
-    ]);
+    $paths = expectArray($openApi->toArray()['paths']);
+    expect($paths)->toHaveKeys(['/users', '/legacy'])
+        ->and($paths['/legacy'])
+        ->toBe([
+            '$ref' => '#/components/pathItems/LegacyUsers',
+        ]);
 });
 
 it('adds webhooks one at a time with webhook()', function (): void {

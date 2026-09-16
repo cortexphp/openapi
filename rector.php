@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Pest\Rector\Set\PestSetList;
 use Rector\CodeQuality\Rector\Catch_\ThrowWithPreviousExceptionRector;
 
 return RectorConfig::configure()
@@ -15,7 +16,12 @@ return RectorConfig::configure()
         importDocBlockNames: false,
         removeUnusedImports: true,
     )
-    ->withPhpSets()
+    ->withPhpSets(
+        php84: true,
+    )
+    ->withSets([
+        PestSetList::CODING_STYLE,
+    ])
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,

@@ -8,7 +8,8 @@ use Cortex\OpenApi\Objects\Server;
 covers(Link::class);
 
 it('emits nothing when empty', function (): void {
-    expect(Link::create()->toArray())->toBe([]);
+    expect(Link::create()->toArray())
+        ->toBeEmpty();
 });
 
 it('emits operationId-based link', function (): void {
@@ -65,13 +66,14 @@ it('inserts requestBody after parameters when parameters are present', function 
 
     $array = $link->toArray();
 
-    expect($array)->toHaveKey('requestBody');
-    expect($array['requestBody'])->toBe([
-        'key' => 'value',
-    ]);
+    expect($array)->toHaveKey('requestBody')
+        ->and($array['requestBody'])
+        ->toBe([
+            'key' => 'value',
+        ]);
 
     $keys = array_keys($array);
-    expect(array_search('requestBody', $keys, true))->toBeGreaterThan(array_search('parameters', $keys, true));
+    expect(keyIndex($keys, 'requestBody'))->toBeGreaterThan(keyIndex($keys, 'parameters'));
 });
 
 it('inserts requestBody before description when no parameters present', function (): void {
@@ -84,7 +86,7 @@ it('inserts requestBody before description when no parameters present', function
 
     expect($array)->toHaveKey('requestBody');
     $keys = array_keys($array);
-    expect(array_search('requestBody', $keys, true))->toBeLessThan(array_search('description', $keys, true));
+    expect(keyIndex($keys, 'requestBody'))->toBeLessThan(keyIndex($keys, 'description'));
 });
 
 it('inserts requestBody before server when no parameters or description', function (): void {
@@ -99,7 +101,7 @@ it('inserts requestBody before server when no parameters or description', functi
 
     expect($array)->toHaveKey('requestBody');
     $keys = array_keys($array);
-    expect(array_search('requestBody', $keys, true))->toBeLessThan(array_search('server', $keys, true));
+    expect(keyIndex($keys, 'requestBody'))->toBeLessThan(keyIndex($keys, 'server'));
 });
 
 it('appends requestBody at end when no parameters, description, or server', function (): void {
@@ -111,6 +113,7 @@ it('appends requestBody at end when no parameters, description, or server', func
 
     $array = $link->toArray();
 
-    expect($array)->toHaveKey('requestBody');
-    expect(array_key_last($array))->toBe('requestBody');
+    expect($array)->toHaveKey('requestBody')
+        ->and(array_key_last($array))
+        ->toBe('requestBody');
 });

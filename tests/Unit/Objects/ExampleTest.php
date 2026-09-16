@@ -7,7 +7,8 @@ use Cortex\OpenApi\Objects\Example;
 covers(Example::class);
 
 it('emits an empty array when no fields are set', function (): void {
-    expect(Example::create()->toArray())->toBe([]);
+    expect(Example::create()->toArray())
+        ->toBeEmpty();
 });
 
 it('emits every field when set', function (): void {
@@ -52,5 +53,6 @@ it('clears a value when explicitly cleared', function (): void {
 
     $example->clearValue();
 
-    expect($example->toArray())->toBe([]);
+    expect($example->toArray())
+        ->toBeEmpty();
 });

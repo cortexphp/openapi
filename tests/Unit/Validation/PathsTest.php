@@ -17,7 +17,8 @@ it('rejects a path key not starting with a forward slash', function (): void {
             Operation::get()->responses(Response::ok()),
         ));
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/paths',
         'Unevaluated object properties not allowed: noslash',
     );

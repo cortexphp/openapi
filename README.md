@@ -15,7 +15,7 @@ A modern, fluent builder for [OpenAPI 3.1](https://spec.openapis.org/oas/v3.1.0)
 
 ## Requirements
 
-- PHP 8.3+
+- PHP 8.4+
 
 ## Installation
 
