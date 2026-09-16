@@ -71,9 +71,3 @@ it('builds a mutualTls scheme', function (): void {
         'type' => 'mutualTLS',
     ]);
 });
-
-it('supports ref() shortcut', function (): void {
-    expect(SecurityScheme::ref('OAuth2')->toArray())->toBe([
-        '$ref' => '#/components/securitySchemes/OAuth2',
-    ]);
-});

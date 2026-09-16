@@ -211,7 +211,7 @@ Operation::post()
 
 ```php
 Operation::post()
-    ->callback('onEvent', Callback::ref('EventWebhook'))
+    ->callback('onEvent', Reference::callback('EventWebhook'))
     ->callback('onError', Callback::create()->expression(
         '{$request.body#/errorUrl}',
         PathItem::create('')->operations(
@@ -257,7 +257,7 @@ $components = Components::create()
 Operation::post()
     ->operationId('hooks.subscribe')
     ->callbacks([
-        'onEvent' => Callback::ref('EventWebhook'),
+        'onEvent' => Reference::callback('EventWebhook'),
     ]);
 ```
 
@@ -339,7 +339,7 @@ $doc = OpenApi::create()
                 )
                 ->responses(Response::created())
                 ->callbacks([
-                    'onEvent' => Callback::ref('GenericWebhook'),
+                    'onEvent' => Reference::callback('GenericWebhook'),
                 ]),
         ),
     );

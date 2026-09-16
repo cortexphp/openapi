@@ -54,11 +54,6 @@ final class Header implements Serializable, HasExtensionsInterface
         return new self();
     }
 
-    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
-    {
-        return Reference::header($name, $summary, $description);
-    }
-
     public function description(?string $description): self
     {
         $this->description = $description;
