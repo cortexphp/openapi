@@ -29,11 +29,6 @@ final class Example implements Serializable, HasExtensionsInterface
         return new self();
     }
 
-    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
-    {
-        return Reference::example($name, $summary, $description);
-    }
-
     public function summary(?string $summary): self
     {
         $this->summary = $summary;

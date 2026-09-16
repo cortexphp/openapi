@@ -42,11 +42,6 @@ final class PathItem implements Serializable, HasExtensionsInterface
         return new self($path);
     }
 
-    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
-    {
-        return Reference::pathItem($name, $summary, $description);
-    }
-
     public function getPath(): string
     {
         return $this->path;

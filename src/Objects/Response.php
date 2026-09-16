@@ -128,19 +128,14 @@ final class Response implements Serializable, HasExtensionsInterface
         return new self('500');
     }
 
-    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
-    {
-        return Reference::response($name, $summary, $description);
-    }
-
     /**
      * Answer this status code with a reusable response from Components.
      *
-     * Unlike the static ref(), this keeps the status code, so the result can go straight
-     * into Operation::responses(). The document carries the $ref alone — a Reference Object
-     * has no room for the fields set on this response.
+     * The status code is kept, so the result can go straight into Operation::responses().
+     * The document carries the $ref alone — a Reference Object has no room for the other
+     * fields set on this response.
      */
-    public function refTo(string $name, ?string $summary = null, ?string $description = null): self
+    public function ref(string $name, ?string $summary = null, ?string $description = null): self
     {
         $this->reference = Reference::response($name, $summary, $description);
 

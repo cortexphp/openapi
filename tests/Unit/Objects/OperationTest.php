@@ -156,7 +156,7 @@ it('responses() accepts only Response objects', function (): void {
 it('responses() accepts a referenced response and keys it by status', function (): void {
     $operation = Operation::get()->responses(
         Response::ok(),
-        Response::notFound()->refTo('NotFound'),
+        Response::notFound()->ref('NotFound'),
     );
 
     expect($operation->toArray()['responses'])->toBe([
@@ -195,7 +195,7 @@ it('emits callbacks when set', function (): void {
 it('adds callbacks one at a time with callback()', function (): void {
     $operation = Operation::post()
         ->callback('onData', Callback::create()->expression('{$url}', PathItem::create('/hook')))
-        ->callback('onError', Callback::ref('OnError'));
+        ->callback('onError', Reference::callback('OnError'));
 
     $arr = $operation->toArray();
     expect($arr['callbacks'])->toHaveKey('onData');

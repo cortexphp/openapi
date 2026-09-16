@@ -153,14 +153,14 @@ $components = Components::create()
     );
 ```
 
-Reference them from operations with `->refTo()`, which keeps the status code from the named constructor:
+Reference them from operations with `->ref()`, which keeps the status code from the named constructor:
 
 ```php
 Operation::get()
     ->responses(
         Response::ok()->json(Reference::schema('User')),
-        Response::notFound()->refTo('NotFound'),
-        Response::unauthorized()->refTo('Unauthorized'),
+        Response::notFound()->ref('NotFound'),
+        Response::unauthorized()->ref('Unauthorized'),
     );
 ```
 
@@ -184,8 +184,8 @@ $components = Components::create()
     );
 
 // Reference
-Operation::post()->requestBody(RequestBody::ref('CreateUser'));
-Operation::patch()->requestBody(RequestBody::ref('UpdateUser'));
+Operation::post()->requestBody(Reference::requestBody('CreateUser'));
+Operation::patch()->requestBody(Reference::requestBody('UpdateUser'));
 ```
 
 ## Security Schemes

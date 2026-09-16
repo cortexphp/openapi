@@ -138,7 +138,7 @@ Operation::get()
 
 ### Attaching Responses
 
-`responses()` takes `Response` objects and keys them from their own status code, so you rarely repeat yourself. Point a status code at a reusable response with `->refTo()`:
+`responses()` takes `Response` objects and keys them from their own status code, so you rarely repeat yourself. Point a status code at a reusable response with `->ref()`:
 
 ```php
 use Cortex\OpenApi\Objects\Response;
@@ -147,7 +147,7 @@ use Cortex\OpenApi\Objects\Reference;
 Operation::get()
     ->responses(
         Response::ok()->json(Reference::schema('Article')),
-        Response::notFound()->refTo('NotFound'),
+        Response::notFound()->ref('NotFound'),
     );
 ```
 
@@ -156,7 +156,7 @@ Operation::get()
 ```php
 Operation::get()
     ->responses(Response::ok()->json(Reference::schema('Article')))
-    ->response(418, Response::ref('Teapot'));
+    ->response(418, Reference::response('Teapot'));
 ```
 
 See [Responses](/openapi/responses) for headers, links, and reusable response components.

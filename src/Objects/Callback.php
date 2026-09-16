@@ -22,11 +22,6 @@ final class Callback implements Serializable, HasExtensionsInterface
         return new self();
     }
 
-    public static function ref(string $name, ?string $summary = null, ?string $description = null): Reference
-    {
-        return Reference::callback($name, $summary, $description);
-    }
-
     public function expression(string $runtimeExpression, PathItem $pathItem): self
     {
         $this->expressions[$runtimeExpression] = $pathItem;

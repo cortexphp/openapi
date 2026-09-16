@@ -20,19 +20,19 @@ Operation::get()
     );
 ```
 
-To answer a status code with a reusable response from `Components`, use `->refTo()`. The status still comes from the named constructor, so it belongs in the same `responses()` call:
+To answer a status code with a reusable response from `Components`, use `->ref()`. The status still comes from the named constructor, so it belongs in the same `responses()` call:
 
 ```php
 Operation::get()
     ->responses(
         Response::ok()->json(Reference::schema('User')),
-        Response::notFound()->refTo('NotFound'),
-        Response::unauthorized()->refTo('Unauthorized'),
+        Response::notFound()->ref('NotFound'),
+        Response::unauthorized()->ref('Unauthorized'),
     );
 ```
 
 <Tip>
-`Response::ref('NotFound')` (static) returns a bare `Reference` for slots that supply the status themselves, such as `Components::response()` or `Operation::response(404, ...)`. `->refTo('NotFound')` (fluent) keeps the status code, which is what `responses()` needs.
+Elsewhere, references are built with `Reference::response('NotFound')` — see [Working with References](/openapi/quickstart). `->ref()` exists on `Response` because `responses()` keys each entry by status code, and a bare reference has none. Slots that supply the status themselves, such as `Components::response()` and `Operation::response(404, ...)`, take `Reference::response()`.
 </Tip>
 
 ### Named Constructors
@@ -212,9 +212,11 @@ $components = Components::create()
 
 // Reference from an operation
 Operation::get()
-    ->responses(Response::ok()->json($schema))
-    ->response(404, Response::ref('NotFound'))
-    ->response(401, Response::ref('Unauthorized'));
+    ->responses(
+        Response::ok()->json($schema),
+        Response::notFound()->ref('NotFound'),
+        Response::unauthorized()->ref('Unauthorized'),
+    );
 ```
 
 ## Inline Examples on Responses

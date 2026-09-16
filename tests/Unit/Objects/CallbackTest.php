@@ -37,9 +37,3 @@ it('supports multiple expressions', function (): void {
         ],
     ]);
 });
-
-it('supports ref() shortcut', function (): void {
-    expect(Callback::ref('Webhook')->toArray())->toBe([
-        '$ref' => '#/components/callbacks/Webhook',
-    ]);
-});
