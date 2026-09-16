@@ -21,7 +21,8 @@ it('rejects an example with both value and externalValue', function (): void {
                     ->externalValue('https://example.com/examples/user.json')),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/components/examples/Bad',
         'The data must not match schema',
     );

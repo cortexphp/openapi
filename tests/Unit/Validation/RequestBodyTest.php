@@ -24,7 +24,7 @@ it('accepts a POST operation with a requestBody', function (): void {
             ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('rejects a requestBody with no content', function (): void {
@@ -36,7 +36,8 @@ it('rejects a requestBody with no content', function (): void {
             Components::create()->requestBody('Body', RequestBody::create()),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/components/requestBodies/Body',
         'The data (array) must match the type: object',
     );

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cortex\OpenApi\OpenApi;
+use PHPUnit\Framework\Assert;
 use Cortex\OpenApi\Exceptions\ValidationException;
 
 covers(OpenApi::class);
@@ -12,7 +13,7 @@ it('validation exception message contains schema validation prefix', function ()
 
     try {
         $openApi->validate();
-        $this->fail('Expected ValidationException');
+        Assert::fail('Expected ValidationException');
     } catch (ValidationException $validationException) {
         expect($validationException->getMessage())->toContain('OpenAPI document failed meta-schema validation:');
     }
@@ -39,18 +40,18 @@ it('validation exception carries a structured errors array', function (): void {
 
     try {
         $openApi->validate();
-        expect(true)->toBeFalse('Expected ValidationException');
+        Assert::fail('Expected ValidationException');
     } catch (ValidationException $validationException) {
         $errors = $validationException->errors();
-        expect($errors)->toBeArray();
-        expect($errors)->not->toBeEmpty();
-        expect($errors)->toHaveKey('/');
-        expect($errors['/'])->toBeArray();
-        expect($errors['/'][0])->toBe('The required properties (info) are missing');
+        expect($errors)->not->toBeEmpty()
+            ->toHaveKey('/');
+        $rootErrors = expectArray($errors['/']);
+        expect($rootErrors[0])->toBe('The required properties (info) are missing');
     }
 });
 
 it('ValidationException constructed without errors returns empty array from errors()', function (): void {
     $e = new ValidationException('Something went wrong');
-    expect($e->errors())->toBe([]);
+    expect($e->errors())
+        ->toBeEmpty();
 });

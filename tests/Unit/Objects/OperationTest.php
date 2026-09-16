@@ -20,18 +20,33 @@ use Cortex\OpenApi\Objects\SecurityRequirement;
 covers(Operation::class);
 
 it('knows its HTTP method', function (): void {
-    expect(Operation::get()->getMethod())->toBe(HttpMethod::Get);
-    expect(Operation::post()->getMethod())->toBe(HttpMethod::Post);
-    expect(Operation::put()->getMethod())->toBe(HttpMethod::Put);
-    expect(Operation::patch()->getMethod())->toBe(HttpMethod::Patch);
-    expect(Operation::delete()->getMethod())->toBe(HttpMethod::Delete);
-    expect(Operation::options()->getMethod())->toBe(HttpMethod::Options);
-    expect(Operation::head()->getMethod())->toBe(HttpMethod::Head);
-    expect(Operation::trace()->getMethod())->toBe(HttpMethod::Trace);
+    expect(Operation::get()->getMethod())->toBe(HttpMethod::Get)
+        ->and(Operation::post()
+            ->getMethod())
+        ->toBe(HttpMethod::Post)
+        ->and(Operation::put()
+            ->getMethod())
+        ->toBe(HttpMethod::Put)
+        ->and(Operation::patch()
+            ->getMethod())
+        ->toBe(HttpMethod::Patch)
+        ->and(Operation::delete()
+            ->getMethod())
+        ->toBe(HttpMethod::Delete)
+        ->and(Operation::options()
+            ->getMethod())
+        ->toBe(HttpMethod::Options)
+        ->and(Operation::head()
+            ->getMethod())
+        ->toBe(HttpMethod::Head)
+        ->and(Operation::trace()
+            ->getMethod())
+        ->toBe(HttpMethod::Trace);
 });
 
 it('emits nothing by default', function (): void {
-    expect(Operation::get()->toArray())->toBe([]);
+    expect(Operation::get()->toArray())
+        ->toBeEmpty();
 });
 
 it('emits tags/summary/description/operationId/deprecated', function (): void {
@@ -198,6 +213,6 @@ it('adds callbacks one at a time with callback()', function (): void {
         ->callback('onError', Reference::callback('OnError'));
 
     $arr = $operation->toArray();
-    expect($arr['callbacks'])->toHaveKey('onData');
-    expect($arr['callbacks'])->toHaveKey('onError');
+    expect($arr['callbacks'])->toHaveKey('onData')
+        ->toHaveKey('onError');
 });

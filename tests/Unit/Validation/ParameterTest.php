@@ -28,7 +28,7 @@ it('accepts all four parameter locations', function (): void {
             ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('rejects a parameter with neither schema nor content', function (): void {
@@ -42,7 +42,7 @@ it('rejects a parameter with neither schema nor content', function (): void {
             ),
         );
 
-    expect($openApi)->toFailOpenApiValidation([
+    assertOpenApiValidationErrors($openApi, [
         '/paths/~1ping/get/parameters/0' => [
             'The required properties (schema) are missing',
             'The required properties (content) are missing',
@@ -61,7 +61,8 @@ it('rejects a path parameter where required is overridden to false', function ()
             ),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/paths/~1items~1%7Bid%7D/get/parameters/0/required',
         'The data must match the const value',
     );

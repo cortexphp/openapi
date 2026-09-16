@@ -11,14 +11,28 @@ use Cortex\OpenApi\Objects\Reference;
 covers(MediaType::class);
 
 it('knows its own content type', function (): void {
-    expect(MediaType::json()->getContentType())->toBe('application/json');
-    expect(MediaType::xml()->getContentType())->toBe('application/xml');
-    expect(MediaType::form()->getContentType())->toBe('application/x-www-form-urlencoded');
-    expect(MediaType::multipart()->getContentType())->toBe('multipart/form-data');
-    expect(MediaType::text()->getContentType())->toBe('text/plain');
-    expect(MediaType::html()->getContentType())->toBe('text/html');
-    expect(MediaType::octetStream()->getContentType())->toBe('application/octet-stream');
-    expect(MediaType::of('application/pdf')->getContentType())->toBe('application/pdf');
+    expect(MediaType::json()->getContentType())->toBe('application/json')
+        ->and(MediaType::xml()
+            ->getContentType())
+        ->toBe('application/xml')
+        ->and(MediaType::form()
+            ->getContentType())
+        ->toBe('application/x-www-form-urlencoded')
+        ->and(MediaType::multipart()
+            ->getContentType())
+        ->toBe('multipart/form-data')
+        ->and(MediaType::text()
+            ->getContentType())
+        ->toBe('text/plain')
+        ->and(MediaType::html()
+            ->getContentType())
+        ->toBe('text/html')
+        ->and(MediaType::octetStream()
+            ->getContentType())
+        ->toBe('application/octet-stream')
+        ->and(MediaType::of('application/pdf')
+            ->getContentType())
+        ->toBe('application/pdf');
 });
 
 it('accepts a JsonSchema and strips $schema/title when serialized', function (): void {
@@ -91,7 +105,7 @@ it('example appears before encoding in output', function (): void {
         ]);
 
     $keys = array_keys($mediaType->toArray());
-    expect(array_search('example', $keys, true))->toBeLessThan(array_search('encoding', $keys, true));
+    expect(keyIndex($keys, 'example'))->toBeLessThan(keyIndex($keys, 'encoding'));
 });
 
 it('example appears at end when only schema present', function (): void {

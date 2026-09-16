@@ -6,9 +6,6 @@ use Cortex\OpenApi\Concerns\HasExtensions;
 
 covers(HasExtensions::class);
 
-/**
- * Fixture consumer used purely to exercise the HasExtensions trait.
- */
 final class HasExtensionsFixture
 {
     use HasExtensions;
@@ -65,5 +62,5 @@ it('returns $this for chaining', function (): void {
 });
 
 it('rejects an empty key', function (): void {
-    (new HasExtensionsFixture())->x('');
+    new HasExtensionsFixture()->x('');
 })->throws(InvalidArgumentException::class);

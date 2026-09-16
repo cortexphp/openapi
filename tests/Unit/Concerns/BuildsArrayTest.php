@@ -55,7 +55,7 @@ final class BuildsArrayNoExtensionsFixture
 }
 
 it('drops null fields', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'title' => 'X',
         'version' => null,
     ]);
@@ -66,7 +66,7 @@ it('drops null fields', function (): void {
 });
 
 it('drops empty arrays', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'title' => 'X',
         'tags' => [],
     ]);
@@ -77,7 +77,7 @@ it('drops empty arrays', function (): void {
 });
 
 it('unwraps a Serializable child', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'info' => new BuildsArraySerializableFixture(),
     ]);
 
@@ -89,7 +89,7 @@ it('unwraps a Serializable child', function (): void {
 });
 
 it('unwraps a list of Serializable children preserving list semantics', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'tags' => [
             new BuildsArraySerializableFixture(),
             new BuildsArraySerializableFixture(),
@@ -109,7 +109,7 @@ it('unwraps a list of Serializable children preserving list semantics', function
 });
 
 it('unwraps an associative array of Serializable children preserving keys', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'paths' => [
             '/users' => new BuildsArraySerializableFixture(),
             '/pets' => new BuildsArraySerializableFixture(),
@@ -143,7 +143,7 @@ it('merges vendor extensions into the output', function (): void {
 });
 
 it('preserves explicit false values', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'deprecated' => false,
     ]);
 
@@ -153,7 +153,7 @@ it('preserves explicit false values', function (): void {
 });
 
 it('preserves explicit zero values', function (): void {
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'minimum' => 0,
     ]);
 
@@ -181,10 +181,10 @@ it('unwraps a Cortex JsonSchema stripping $schema and title', function (): void 
 
     // Reference: stand-alone toArray() would include both $schema URI and title.
     $standalone = $stringSchema->toArray();
-    expect($standalone)->toHaveKey('$schema');
-    expect($standalone)->toHaveKey('title', 'IgnoredTitle');
+    expect($standalone)->toHaveKey('$schema')
+        ->toHaveKey('title', 'IgnoredTitle');
 
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => $stringSchema,
     ]);
 
@@ -202,7 +202,7 @@ it('keeps a JsonSchema title that differs from the constructor argument', functi
     expect($objectSchema->getTitle())->toBe('consults')
         ->and($objectSchema->getInitialTitle())->toBe('Consult');
 
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => $objectSchema,
     ]);
 
@@ -211,8 +211,8 @@ it('keeps a JsonSchema title that differs from the constructor argument', functi
             'type' => 'object',
             'title' => 'consults',
         ],
-    ]);
-    expect($out['schema'])->not->toHaveKey('$schema');
+    ])
+        ->and($out['schema'])->not->toHaveKey('$schema');
 });
 
 it('keeps a JsonSchema title set on a schema that had no constructor title', function (): void {
@@ -221,7 +221,7 @@ it('keeps a JsonSchema title set on a schema that had no constructor title', fun
     expect($stringSchema->getTitle())->toBe('IsoDateTime')
         ->and($stringSchema->getInitialTitle())->toBeNull();
 
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => $stringSchema,
     ]);
 
@@ -236,7 +236,7 @@ it('keeps a JsonSchema title set on a schema that had no constructor title', fun
 it('strips a JsonSchema title that merely restates the constructor argument', function (): void {
     $stringSchema = Schema::string('IsoDateTime')->title('IsoDateTime');
 
-    $out = (new BuildsArrayFixture())->assemble([
+    $out = new BuildsArrayFixture()->assemble([
         'schema' => $stringSchema,
     ]);
 

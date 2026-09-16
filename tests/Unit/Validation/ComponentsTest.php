@@ -16,7 +16,8 @@ it('rejects a components key containing invalid characters', function (): void {
             Components::create()->schema('Invalid Key!', Schema::object()),
         );
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/components/schemas',
         'The string should match pattern: ^[a-zA-Z0-9._-]+$',
     );

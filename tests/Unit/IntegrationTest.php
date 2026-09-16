@@ -131,14 +131,32 @@ it('builds a petstore-style document and validates against meta-schema', functio
     $openApi->validate();
 
     $arr = $openApi->toArray();
+    $info = expectArray($arr['info']);
+    $paths = expectArray($arr['paths']);
+    $pets = expectArray($paths['/pets']);
+    $get = expectArray($pets['get']);
+    $post = expectArray($pets['post']);
+    $callbacks = expectArray($post['callbacks']);
+    $webhooks = expectArray($arr['webhooks']);
+    $petDeleted = expectArray($webhooks['pet.deleted']);
+    $petDeletedPost = expectArray($petDeleted['post']);
+    $components = expectArray($arr['components']);
+    $securitySchemes = expectArray($components['securitySchemes']);
+    $oauth2 = expectArray($securitySchemes['OAuth2']);
 
-    expect($arr['openapi'])->toBe('3.1.0');
-    expect($arr['info']['title'])->toBe('Swagger Petstore');
-    expect($arr['x-api-id'])->toBe('petstore-1');
-    expect($arr['paths']['/pets']['get']['operationId'])->toBe('listPets');
-    expect($arr['paths']['/pets']['post']['callbacks']['onPetCreate'])->toHaveKey('{$request.body#/webhookUrl}');
-    expect($arr['webhooks']['pet.deleted']['post']['operationId'])->toBe('petDeletedWebhook');
-    expect($arr['components']['securitySchemes']['OAuth2']['type'])->toBe('oauth2');
+    expect($arr['openapi'])->toBe('3.1.0')
+        ->and($info['title'])
+        ->toBe('Swagger Petstore')
+        ->and($arr['x-api-id'])
+        ->toBe('petstore-1')
+        ->and($get['operationId'])
+        ->toBe('listPets')
+        ->and($callbacks['onPetCreate'])
+        ->toHaveKey('{$request.body#/webhookUrl}')
+        ->and($petDeletedPost['operationId'])
+        ->toBe('petDeletedWebhook')
+        ->and($oauth2['type'])
+        ->toBe('oauth2');
 });
 
 it('round-trips through JSON encoding', function (): void {
@@ -171,16 +189,22 @@ it('embeds schemas without $schema or title', function (): void {
             ),
         );
 
-    $inline = $openApi->toArray()['paths']['/foo']['get']['responses']['200']['content']['application/json']['schema'];
+    $paths = expectArray($openApi->toArray()['paths']);
+    $foo = expectArray($paths['/foo']);
+    $get = expectArray($foo['get']);
+    $responses = expectArray($get['responses']);
+    $ok = expectArray($responses['200']);
+    $content = expectArray($ok['content']);
+    $json = expectArray($content['application/json']);
+    $inline = $json['schema'];
 
-    expect($inline)->not->toHaveKey('$schema');
-    expect($inline)->not->toHaveKey('title');
-    expect($inline)->toBe([
-        'type' => 'object',
-        'properties' => [
-            'bar' => [
-                'type' => 'string',
+    expect($inline)->not->toHaveKey('$schema')->not->toHaveKey('title')
+        ->toBe([
+            'type' => 'object',
+            'properties' => [
+                'bar' => [
+                    'type' => 'string',
+                ],
             ],
-        ],
-    ]);
+        ]);
 });

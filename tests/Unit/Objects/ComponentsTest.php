@@ -21,7 +21,8 @@ use Cortex\OpenApi\Objects\SecurityScheme;
 covers(Components::class);
 
 it('emits nothing by default', function (): void {
-    expect(Components::create()->toArray())->toBe([]);
+    expect(Components::create()->toArray())
+        ->toBeEmpty();
 });
 
 it('registers schemas', function (): void {

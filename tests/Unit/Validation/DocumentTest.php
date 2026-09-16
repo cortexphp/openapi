@@ -24,7 +24,7 @@ it('accepts a minimal valid 3.1.0 document', function (): void {
             ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('accepts a minimal valid 3.1.1 document', function (): void {
@@ -36,7 +36,7 @@ it('accepts a minimal valid 3.1.1 document', function (): void {
             ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('accepts a document with components, tags, and schemas', function (): void {
@@ -52,13 +52,14 @@ it('accepts a document with components, tags, and schemas', function (): void {
             ),
         );
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('rejects a document missing info', function (): void {
     $openApi = OpenApi::create();
 
-    expect($openApi)->toFailOpenApiValidationAt(
+    assertOpenApiValidationFailsAt(
+        $openApi,
         '/',
         'The required properties (info) are missing',
     );
@@ -69,7 +70,7 @@ it('accepts a components-only document without paths or webhooks', function (): 
         ->info(Info::create('x', '1.0.0'))
         ->components(Components::create()->schema('User', Schema::object()));
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('accepts a webhooks-only document without paths or components', function (): void {
@@ -81,14 +82,14 @@ it('accepts a webhooks-only document without paths or components', function (): 
             ),
         ]);
 
-    expect($openApi)->toPassOpenApiValidation();
+    assertOpenApiValidationPasses($openApi);
 });
 
 it('rejects a document with info but no paths, components, or webhooks', function (): void {
     $openApi = OpenApi::create()
         ->info(Info::create('x', '1.0.0'));
 
-    expect($openApi)->toFailOpenApiValidation([
+    assertOpenApiValidationErrors($openApi, [
         '/' => [
             'The required properties (paths) are missing',
             'The required properties (components) are missing',

@@ -9,7 +9,8 @@ use Cortex\OpenApi\Objects\Header;
 covers(Header::class);
 
 it('emits nothing by default', function (): void {
-    expect(Header::create()->toArray())->toBe([]);
+    expect(Header::create()->toArray())
+        ->toBeEmpty();
 });
 
 it('emits a schema-based header', function (): void {

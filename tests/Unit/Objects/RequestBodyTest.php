@@ -84,7 +84,8 @@ it('json() sets application/json content in one call', function (): void {
 it('json() accepts a Reference', function (): void {
     $requestBody = RequestBody::create()->json(Reference::schema('CreateUser'));
 
-    expect($requestBody->toArray()['content']['application/json'])->toBe([
+    $content = expectArray($requestBody->toArray()['content']);
+    expect($content['application/json'])->toBe([
         'schema' => [
             '$ref' => '#/components/schemas/CreateUser',
         ],
